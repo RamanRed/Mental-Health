@@ -1,0 +1,103 @@
+.wrapper {
+  width: 100%;
+}
+
+.streakHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.streakCount {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fireEmoji {
+  font-size: 1.5rem;
+  animation: float 2s ease-in-out infinite;
+}
+
+.streakNumber {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-patient-light);
+}
+
+.streakLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.milestones {
+  display: flex;
+  gap: 8px;
+}
+
+.milestone {
+  font-size: 1.25rem;
+  opacity: 0.3;
+  filter: grayscale(1);
+  transition: all 0.3s ease;
+}
+
+.milestoneAchieved {
+  opacity: 1;
+  filter: grayscale(0);
+  animation: float 3s ease-in-out infinite;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dayCircle {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.dayCircle.filled {
+  background: var(--color-patient-bg);
+  border-color: var(--color-patient);
+  box-shadow: 0 0 8px var(--color-patient-glow);
+}
+
+.dayCircle.today {
+  border-color: var(--color-patient-light);
+  border-width: 2px;
+}
+
+.dayNumber {
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+.dayCircle.filled .dayNumber {
+  color: var(--color-patient-light);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (max-width: 480px) {
+  .calendarGrid {
+    gap: 4px;
+  }
+  .dayNumber {
+    font-size: 0.55rem;
+  }
+}

@@ -1,0 +1,47 @@
+.otpContainer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.otpInput {
+  width: 52px;
+  height: 60px;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.6);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: var(--text-primary);
+  outline: none;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(8px);
+}
+
+.otpInput:focus {
+  border-color: var(--color-patient);
+  box-shadow: 0 0 0 3px var(--color-patient-glow), 0 0 20px var(--color-patient-glow);
+}
+
+.otpInput.filled {
+  border-color: var(--color-patient);
+  background: var(--color-patient-bg);
+}
+
+.otpInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .otpInput {
+    width: 44px;
+    height: 52px;
+    font-size: 1.25rem;
+  }
+
+  .otpContainer {
+    gap: 8px;
+  }
+}

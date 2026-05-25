@@ -1,0 +1,137 @@
+===============================================================================
+ MANAS - Mental Health Access & Navigation Assistant System
+ Implementation Status Tracker
+ Updated: 2026-05-26
+===============================================================================
+
+TECH STACK:
+  Frontend  : Next.js 14/15/16 (App Router)
+  Backend   : Python + FastAPI
+  Database  : SQLite (Phase 1) / PostgreSQL (Fully Compatible)
+  Auth      : JWT + OTP (simulated)
+  AI Service: Python FastAPI stubs (Phase 1) + Local Diagnostics Classifier
+
+USER IDENTIFICATION STRATEGY:
+  Users          → verification_status field (User model)
+  Patients       → ABHA ID (Ayushman Bharat Health Account) unique linkage
+  Doctors        → Registration/license number unique verification
+  Guardians      → Respective association IDs (ASHA ID, NGO ID, Family relation)
+
+===============================================================================
+ STATUS LEGEND:
+   [DONE]       = Fully implemented and ready
+   [IN PROGRESS]= Currently being built
+   [PENDING]    = Not yet started
+   [STUB]       = Placeholder/mock implementation (Phase 2 real)
+===============================================================================
+
+--- FOUNDATION ---
+[DONE] Project directory structure
+[DONE] Next.js frontend initialization
+[DONE] FastAPI backend initialization
+[DONE] Database schema & models
+[DONE] implementation_status.txt (this file)
+[DONE] pending_tasks.txt
+[REMOVED] Docker containerization (Dockerfile + docker-compose.yml)
+
+--- BACKEND: AUTH ---
+[DONE] User model with verification_status
+[DONE] POST /api/auth/check-user (role-based existence check)
+[DONE] POST /api/auth/request-otp (simulated OTP: 123456)
+[DONE] POST /api/auth/verify-otp (JWT issuance)
+[DONE] POST /api/auth/register/patient
+[DONE] POST /api/auth/register/guardian
+[DONE] POST /api/auth/register/doctor
+[DONE] GET  /api/auth/me
+
+--- BACKEND: PATIENT APIs ---
+[DONE] GET  /api/patients/profile
+[DONE] PUT  /api/patients/profile
+[DONE] GET  /api/patients/consultations
+[DONE] PUT  /api/patients/consent
+[DONE] POST /api/patients/link-guardian
+
+--- BACKEND: MOOD APIs ---
+[DONE] POST /api/mood/entry
+[DONE] GET  /api/mood/entries
+[DONE] GET  /api/mood/streak
+[DONE] GET  /api/mood/trends
+
+--- BACKEND: GUARDIAN APIs ---
+[DONE] GET  /api/guardians/patients
+[DONE] POST /api/guardians/register-patient
+[DONE] POST /api/guardians/notes
+[DONE] POST /api/guardians/questionnaire
+[DONE] GET  /api/guardians/profile
+
+--- BACKEND: DOCTOR APIs ---
+[DONE] GET  /api/doctors/patients (patient queue)
+[DONE] GET  /api/doctors/patient/{id}/brief (pre-consultation brief)
+[DONE] POST /api/doctors/sessions (schedule session)
+[DONE] GET  /api/doctors/sessions (list sessions)
+[DONE] GET  /api/doctors/sessions/{session_id} (session details)
+[DONE] PUT  /api/doctors/sessions/{id} (status/detail update)
+[DONE] PUT  /api/doctors/sessions/{id}/form (validate AI form)
+[DONE] PUT  /api/doctors/sessions/{id}/summary (edit summary)
+[DONE] PUT  /api/doctors/sessions/{id}/access (set guardian access)
+[DONE] GET  /api/doctors/profile
+[DONE] GET  /api/doctors/clinical-forms (list templates)
+[DONE] GET  /api/doctors/clinical-forms/{form_id} (get template)
+
+--- BACKEND: AI SERVICE ---
+[DONE] POST /api/ai/screen (Runs local database-backed clinical rule-based screening)
+[DONE] POST /api/ai/transcribe (ASR via Groq/OpenAI with mock fallback)
+[DONE] POST /api/ai/auto-fill (LLM extraction via Groq/OpenAI with mock fallback)
+[DONE] POST /api/ai/summarize (LLM summaries via Groq/OpenAI with mock fallback)
+
+--- BACKEND: TRANSCRIPT APIs ---
+[DONE] POST /api/transcripts (save transcript for call/session)
+[DONE] GET  /api/transcripts/consultation/{id} (get by consultation)
+[DONE] GET  /api/transcripts/call/{id} (get by video call)
+[DONE] PUT  /api/transcripts/{id} (doctor edits transcript)
+[DONE] DELETE /api/transcripts/{id} (delete transcript)
+[DONE] models/transcript.py (CallTranscript model)
+
+--- BACKEND: FOLLOW REQUEST APIs ---
+[DONE] POST /api/follow-requests (doctor sends follow-up request)
+[DONE] GET  /api/follow-requests/sent (doctor's sent requests)
+[DONE] GET  /api/follow-requests/my (patient's incoming requests)
+[DONE] PUT  /api/follow-requests/{id}/respond (patient responds)
+[DONE] PUT  /api/follow-requests/{id}/acknowledge (patient acknowledges)
+[DONE] models/follow_request.py (DoctorFollowRequest model)
+
+--- BACKEND: ANALYTICS APIs ---
+[DONE] GET  /api/analytics/doctor/overview (dashboard stats)
+[DONE] GET  /api/analytics/doctor/patient/{id}/mood-trend (mood trend for doctor)
+[DONE] GET  /api/analytics/doctor/patient/{id}/screening-history (risk timeline)
+[DONE] GET  /api/analytics/patient/mood-insights (patient personal insights)
+[DONE] GET  /api/analytics/patient/session-history (consultation summary stats)
+
+--- FRONTEND: AUTH ---
+[DONE] Login page (phone + role + OTP verification)
+[DONE] Patient registration form (Sub-Flow A)
+[DONE] Guardian registration form (Association ID + Type)
+[DONE] Doctor registration form (Specialization + License)
+[DONE] Auto-redirect login → register on non-existence
+
+--- FRONTEND: DASHBOARDS ---
+[DONE] Patient dashboard (streak, overview, upcoming session)
+[DONE] Guardian dashboard (patients grid, add notes)
+[DONE] Doctor dashboard (patient queue, brief card, session scheduler, appointments)
+
+--- FRONTEND: FEATURES ---
+[DONE] Mood journal (emoji selector, score slider, text note, trait sliders)
+[DONE] Streak calendar component (last 30 days)
+[DONE] WHO questionnaire (8-domain progressive wizard with save options)
+[DONE] Consultation summary view (expandable consultation cards)
+[DONE] Settings page (profile edit, privacy consents, link guardians)
+[DONE] Live Video Camera and Microphone Audio Recording (telehealth workspace call controls + auto-upload)
+[DONE] Real-time voice dictation (Web Speech API) for Consultation Summary, Verdict, and Clinical Notes
+[DONE] Live user notifications and alerts tray (notifying new sessions, high-risk screening alerts, and caregiver warnings)
+[DONE] Dynamic Clinical Form templates selection and validation (Standard, PHQ-9, GAD-7)
+[DONE] PostgreSQL database dynamic compatibility
+[DONE] api.js cleaned — no duplicate exports, all routes consistent with backend
+
+===============================================================================
+ Last Updated: 2026-05-26 IST
+===============================================================================

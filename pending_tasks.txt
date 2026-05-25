@@ -1,0 +1,58 @@
+===============================================================================
+ MANAS - Mental Health Access & Navigation Assistant System
+ Pending Tasks Tracker
+ Updated: 2026-05-26
+===============================================================================
+
+===============================================================================
+ COMPLETED — All Phase 1 Core + Phase 2 Early Enhancements
+===============================================================================
+
+[DONE] 1.  SQLAlchemy database models (all roles, mood, consultation, video call, notifications)
+[DONE] 2.  Auth system (check-user, simulated OTP, JWT)
+[DONE] 3.  Login page with auto-register redirect (Patient/Guardian/Doctor)
+[DONE] 4.  Patient dashboard (profile, mood entries, streak calendar, follow-up requests)
+[DONE] 5.  Guardian dashboard (patient queue, register patient, notes log, nearby patients)
+[DONE] 6.  Doctor dashboard (patient queue, pre-consultation brief, scheduler)
+[DONE] 7.  Questionnaire system (8 domains progressive wizard)
+[DONE] 8.  Consultation management (sessions CRUD, summary editor, access control)
+[DONE] 9.  Settings page (privacy consent toggles, link guardian)
+[DONE] 10. Premium design styling (glassmorphism cards, calming dark theme)
+[DONE] 11. Guardian notes logging
+[DONE] 12. Consent audit logging
+[DONE] 13. Groq/OpenAI AI Service integration (transcription, auto-fill, summarize)
+[DONE] 14. In-app notification bell tray with auto-polling
+[DONE] 15. Dynamic Clinical Form templates (Standard, PHQ-9, GAD-7)
+[DONE] 16. PostgreSQL compatibility
+[DONE] 17. Live WebRTC video call (SSE signaling, camera/mic recording, auto-upload)
+[DONE] 18. Real-time voice dictation (Web Speech API)
+[DONE] 19. models/transcript.py — CallTranscript model
+[DONE] 20. models/follow_request.py — DoctorFollowRequest model
+[DONE] 21. routers/transcript.py — Full CRUD for call transcripts (5 endpoints)
+[DONE] 22. routers/follow_requests.py — Doctor sends, patient responds/acknowledges (5 endpoints)
+[DONE] 23. routers/analytics.py — Doctor overview, mood trend, screening history, patient insights (5 endpoints)
+[DONE] 24. routers/__init__.py — updated to export transcript, follow_requests, analytics
+[DONE] 25. frontend/src/lib/api.js — cleaned duplicates, aligned all URLs with backend
+
+===============================================================================
+ DEFERRED (by user request — not blocking MVP)
+===============================================================================
+
+[DEFERRED] Real OTP via SMS gateway (static 123456 kept)
+[DEFERRED] Bhashini TTS/STT multi-language localization (English only per user request)
+[DEFERRED] Admin panel for doctor verification approvals
+
+===============================================================================
+ REMOVED
+===============================================================================
+
+[REMOVED] Docker containerization (Dockerfile + docker-compose)
+
+===============================================================================
+ SYSTEM STATUS: ✅ BACKEND FULLY COMPILABLE — All imports resolved
+               ✅ FRONTEND API — All functions consistent with backend routes
+               ✅ DATABASE — All 16 models registered in models/__init__.py
+===============================================================================
+
+ Last Updated: 2026-05-26 IST
+===============================================================================
