@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* New MindWell AI Palette (CSS variables) */
+  --sky: #8ECAE6;
+  --teal: #219EBC;
+  --prussian: #023047;
+
+  --yellow: #FFB703;
+  --orange: #FB8500;
+  --white: #ffffff;
+
+  --sky-light: #d4edf7;
+  --sky-mist: #eaf6fb;
+  --prussian-muted: #1a4a6b;
+  --prussian-soft: #2d6a8f;
+  --white-glass: rgba(255,255,255,0.72);
+  --glass-border: rgba(255,255,255,0.55);
+
+  /* shadcn/ui compat (preserve system tokens) */
+  --background:       210 60% 98%;
+  --foreground:       210 96% 15%;
+  --card:             0 0% 100%;
+  --card-foreground:  210 96% 15%;
+  --muted:            210 30% 94%;
+  --muted-foreground: 210 20% 42%;
+  --border:           210 30% 85%;
+  --input:            210 30% 85%;
+  --ring:             197 78% 43%;
+  --primary:          197 78% 43%;
+  --primary-foreground: 0 0% 100%;
+}
+
+.dark {
+  --background: 221 39% 11%;
+  --foreground: 210 20% 98%;
+  --card: 221 32% 16%;
+  --card-foreground: 210 20% 98%;
+  --muted: 221 26% 20%;
+  --muted-foreground: 218 11% 72%;
+  --border: 221 22% 24%;
+  --input: 221 22% 24%;
+  --ring: 173 80% 40%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html {
+  min-width: 360px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--sky-mist, #eaf6fb);
+  color: var(--prussian, #023047);
+  font-family: var(--font-inter), var(--font-noto), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--teal);
+  outline-offset: 3px;
+}
+
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.calm-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--muted-foreground)) transparent;
+}
+
+/* MindWell Custom Animations */
+@keyframes floatBlob {
+  0%, 100% {
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    transform: scale(1.08) translate(12px, -18px);
+  }
+}
+
+@keyframes floatCard {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+.animate-float-blob {
+  animation: floatBlob 9s ease-in-out infinite;
+}
+
+.animate-float-blob-reverse {
+  animation: floatBlob 7s ease-in-out infinite reverse;
+}
+
+.animate-float-card {
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+.transition-mist-theme {
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
