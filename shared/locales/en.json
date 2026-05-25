@@ -1,0 +1,30 @@
+{
+  "greeting": "Hello! Welcome to MindBridge.",
+  "chatbot_intro": "Hi, I'm Saathi — your mental health companion. How are you feeling today?",
+  "risk_labels": {
+    "green": "You're doing well. Keep it up!",
+    "yellow": "Mild concern detected. Let's talk.",
+    "orange": "You seem to be going through a tough time. Help is available.",
+    "red": "We're concerned about your wellbeing. Please reach out to a counselor now."
+  },
+  "error_messages": {
+    "unauthorized": "You are not authorized to perform this action.",
+    "not_found": "The requested resource was not found.",
+    "server_error": "Something went wrong. Please try again later.",
+    "otp_expired": "Your OTP has expired. Please request a new one.",
+    "otp_invalid": "Invalid OTP. Please try again.",
+    "rate_limit": "Too many requests. Please slow down.",
+    "validation_error": "Please check your inputs and try again."
+  },
+  "mood_prompts": {
+    "check_in": "How are you feeling right now?",
+    "sleep": "How many hours did you sleep last night?",
+    "energy": "How would you rate your energy levels today?",
+    "anxiety": "On a scale of 1-10, how anxious are you feeling?"
+  },
+  "assessment": {
+    "intro": "Let's do a quick check-in. I'll ask you a few questions.",
+    "completed": "Thank you for completing the assessment. Here are your results.",
+    "crisis_message": "Your responses indicate you may be in crisis. Please call iCall: 9152987821 or Vandrevala Foundation: 1860-2662-345"
+  }
+}
