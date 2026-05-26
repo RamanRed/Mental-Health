@@ -4,7 +4,7 @@
 
 import { getToken } from './auth';
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000') + '/api';
 
 // Core fetch wrapper with auth
 async function fetchAPI(endpoint, options = {}) {
@@ -534,6 +534,25 @@ export async function getPatientSessionHistory() {
   return fetchAPI('/analytics/patient/session-history');
 }
 
+export async function getDoctorPatientAnalytics(patientId) {
+  // Aggregate multiple analytics endpoints for patient overview
+  const [moodTrend, screeningHistory] = await Promise.allSettled([
+    getDoctorPatientMoodTrend(patientId, 30),
+    getDoctorPatientScreeningHistory(patientId),
+  ]);
+
+  return {
+    mood_trend: moodTrend.status === 'fulfilled' ? (moodTrend.value.trends || moodTrend.value) : [],
+    risk_trend: screeningHistory.status === 'fulfilled' ? (screeningHistory.value.screenings || screeningHistory.value) : [],
+    current_streak: moodTrend.status === 'fulfilled' ? (moodTrend.value.current_streak || 0) : 0,
+    avg_mood_score: moodTrend.status === 'fulfilled' ? (moodTrend.value.avg_score || null) : null,
+    total_mood_entries: moodTrend.status === 'fulfilled' ? (moodTrend.value.total_entries || 0) : 0,
+    session_stats: { completed: 0 },
+    questionnaire_count: 0,
+    guardian_notes_count: 0,
+  };
+}
+
 // ============================================================
 // HEALTH CHECK
 // ============================================================
@@ -541,3 +560,6 @@ export async function getPatientSessionHistory() {
 export async function getHealth() {
   return fetchAPI('/health');
 }
+
+// Alias used by doctor dashboard
+export { getSentFollowRequests as getDoctorFollowRequests };

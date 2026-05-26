@@ -73,16 +73,16 @@ export default function LocationBadge({ onLocationCapture, initialLatitude, init
   };
 
   return (
-    <div className="location-badge-container flex items-center justify-between p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 shadow-md">
-      <div className="flex items-center gap-3">
-        <div className={`location-icon-wrapper p-2 rounded-lg bg-emerald-500/20 text-emerald-400 ${loading ? 'animate-pulse' : ''}`}>
+    <div className="location-badge-container">
+      <div className="location-content">
+        <div className={`location-icon-wrapper ${loading ? 'pulse' : ''}`}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
             strokeWidth={2}
             stroke="currentColor"
-            className="w-5 h-5"
+            className="icon-medium"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
             <path
@@ -92,13 +92,13 @@ export default function LocationBadge({ onLocationCapture, initialLatitude, init
             />
           </svg>
         </div>
-        <div className="flex flex-col text-left">
-          <span className="text-xs text-white/50 font-medium">Your Geographic Location</span>
-          <span className="text-sm font-semibold text-white">
+        <div className="location-info">
+          <span className="location-label">Your Geographic Location</span>
+          <span className="location-value">
             {loading ? 'Detecting Location...' : error ? error : address ? address : 'Detecting...'}
           </span>
           {coords && (
-            <span className="text-[10px] text-white/40 font-mono mt-0.5">
+            <span className="location-coords">
               Lat: {coords.latitude.toFixed(5)}, Lng: {coords.longitude.toFixed(5)}
             </span>
           )}
@@ -107,7 +107,7 @@ export default function LocationBadge({ onLocationCapture, initialLatitude, init
       {!loading && (
         <button
           onClick={captureLocation}
-          className="p-1.5 rounded-lg bg-white/5 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+          className="location-refresh-btn"
           title="Refresh Location"
         >
           <svg
@@ -116,7 +116,7 @@ export default function LocationBadge({ onLocationCapture, initialLatitude, init
             viewBox="0 0 24 24"
             strokeWidth={2}
             stroke="currentColor"
-            className="w-4 h-4"
+            className="icon-small"
           >
             <path
               strokeLinecap="round"
@@ -126,6 +126,91 @@ export default function LocationBadge({ onLocationCapture, initialLatitude, init
           </svg>
         </button>
       )}
+
+      <style jsx>{`
+        .location-badge-container {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .location-content {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .location-icon-wrapper {
+          padding: 8px;
+          border-radius: 8px;
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .pulse {
+          animation: pulse-animation 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-animation {
+          0%, 100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: .5;
+          }
+        }
+        .location-info {
+          display: flex;
+          flex-direction: column;
+          text-align: left;
+        }
+        .location-label {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+          font-weight: 500;
+        }
+        .location-value {
+          font-size: 14px;
+          font-weight: 600;
+          color: white;
+        }
+        .location-coords {
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.4);
+          font-family: monospace;
+          margin-top: 2px;
+        }
+        .location-refresh-btn {
+          padding: 6px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.7);
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .location-refresh-btn:hover {
+          background: rgba(255, 255, 255, 0.2);
+          color: white;
+        }
+        .icon-medium {
+          width: 20px;
+          height: 20px;
+        }
+        .icon-small {
+          width: 16px;
+          height: 16px;
+        }
+      `}</style>
     </div>
   );
 }

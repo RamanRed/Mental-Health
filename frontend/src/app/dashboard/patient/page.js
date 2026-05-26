@@ -67,7 +67,11 @@ export default function PatientDashboard() {
 
       } catch (err) {
         console.error(err);
-        setError('Could not load patient profile dashboard.');
+        if (err.message && err.message.includes('profile not found')) {
+          setError('Patient profile not found. Your session may be stale or the database was reset. Please click Logout and register a new patient profile.');
+        } else {
+          setError('Could not load patient profile dashboard.');
+        }
       } finally {
         setLoading(false);
       }
@@ -161,14 +165,14 @@ export default function PatientDashboard() {
           <h1 className="welcome-title">Namaste, {profile.full_name} 👋</h1>
           <p className="welcome-subtitle">Welcome back to your health space. Let's track your wellness together.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={openEmergencyModal}
-            className="px-4 py-2 bg-gradient-to-r from-red-600 to-rose-500 hover:from-red-700 hover:to-rose-600 text-white rounded-xl shadow-lg shadow-red-500/25 flex items-center gap-2 font-bold text-sm transition-all duration-200 animate-pulse"
+            className="emergency-call-btn"
           >
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+            <span className="emergency-ping">
+              <span className="emergency-ping-wave"></span>
+              <span className="emergency-ping-dot"></span>
             </span>
             Emergency Call 🚨
           </button>
@@ -295,35 +299,35 @@ export default function PatientDashboard() {
 
       {/* Doctor Follow-Up Requests Panel */}
       {followRequests.filter(r => r.status === 'pending').length > 0 && (
-        <div className="fixed bottom-6 right-6 z-40 w-80 flex flex-col gap-2">
+        <div className="follow-notification-panel">
           {followRequests.filter(r => r.status === 'pending').map((req) => (
-            <div key={req.id} className="p-4 rounded-2xl bg-slate-900 border border-violet-500/40 shadow-2xl flex flex-col gap-3 text-white text-sm animate-fade-in">
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-bold text-violet-400 uppercase tracking-wider">
-                    {req.urgency === 'emergency' ? '🚨 Emergency' : req.urgency === 'urgent' ? '⚠️ Urgent' : '📋 Routine'} Follow-Up Request
+            <div key={req.id} className="follow-notification-card">
+              <div className="follow-notif-header">
+                <div className="follow-notif-info">
+                  <span className="follow-notif-type">
+                    {req.urgency === 'emergency' ? '🚨 Emergency' : req.urgency === 'urgent' ? '⚠️ Urgent' : '📋 Routine'} Follow-Up
                   </span>
-                  <strong className="text-white">Dr. {req.doctor_name}</strong>
+                  <strong style={{ color: 'var(--text-primary)' }}>Dr. {req.doctor_name}</strong>
                 </div>
                 {req.suggested_date && (
-                  <span className="text-[10px] text-slate-400 shrink-0">
+                  <span className="follow-notif-date">
                     {new Date(req.suggested_date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                   </span>
                 )}
               </div>
               {req.message && (
-                <p className="text-xs text-slate-300 italic bg-white/5 rounded-xl p-2.5">"{req.message}"</p>
+                <p className="follow-notif-message">"{req.message}"</p>
               )}
-              <div className="flex items-center gap-2">
+              <div className="follow-notif-actions">
                 <button
                   disabled={respondingId === req.id}
                   onClick={() => handleRespondFollow(req.id, 'declined')}
-                  className="flex-1 py-1.5 rounded-xl bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 transition text-xs font-semibold disabled:opacity-50"
+                  className="follow-decline-btn"
                 >Decline</button>
                 <button
                   disabled={respondingId === req.id}
                   onClick={() => handleRespondFollow(req.id, 'accepted')}
-                  className="flex-1 py-1.5 rounded-xl bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/20 transition text-xs font-semibold disabled:opacity-50"
+                  className="follow-accept-btn"
                 >{respondingId === req.id ? 'Responding...' : 'Accept'}</button>
               </div>
             </div>
@@ -333,44 +337,44 @@ export default function PatientDashboard() {
 
       {/* Emergency Doctor Selector Modal */}
       {showEmergencyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-4 text-left">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold text-red-500 flex items-center gap-2">
+        <div className="emergency-modal-overlay">
+          <div className="emergency-modal-content">
+            <div className="emergency-modal-header">
+              <h3 className="emergency-modal-title">
                 <span>🚨 Emergency Call</span>
               </h3>
               <button
                 onClick={() => setShowEmergencyModal(false)}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
+                className="emergency-modal-close"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 1 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
-            <p className="text-sm text-slate-400">
+            <p className="emergency-modal-desc">
               Select an available doctor to initiate an emergency psychiatric counseling session right now.
             </p>
-            <div className="flex flex-col gap-2.5 max-h-[40vh] overflow-y-auto pr-1">
+            <div className="emergency-doctor-list">
               {doctorsList.length > 0 ? (
                 doctorsList.map((doc) => (
                   <button
                     key={doc.id}
                     onClick={() => handleEmergencyCall(doc.id)}
-                    className="flex items-center justify-between p-3.5 rounded-2xl bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/5 text-left transition-all duration-200"
+                    className="emergency-doctor-item"
                   >
-                    <div className="flex flex-col gap-0.5">
-                      <span className="font-semibold text-white">Dr. {doc.full_name}</span>
-                      <span className="text-xs text-slate-400">{doc.specialization || 'General Therapist'}</span>
-                      <span className="text-[10px] text-slate-500">{doc.hospital_affiliation || 'MANAS Network'}</span>
+                    <div className="emergency-doctor-info">
+                      <span className="emergency-doctor-name">Dr. {doc.full_name}</span>
+                      <span className="emergency-doctor-spec">{doc.specialization || 'General Therapist'}</span>
+                      <span className="emergency-doctor-hospital">{doc.hospital_affiliation || 'MANAS Network'}</span>
                     </div>
-                    <span className="text-xs text-red-400 font-bold bg-red-400/10 px-2.5 py-1 rounded-lg border border-red-400/20">
+                    <span className="emergency-call-now-badge">
                       Call Now
                     </span>
                   </button>
                 ))
               ) : (
-                <div className="text-center py-6 text-slate-500 text-sm">
+                <div className="emergency-no-doctors">
                   No doctors currently online.
                 </div>
               )}
@@ -554,6 +558,275 @@ export default function PatientDashboard() {
 
         .log-mood-link {
           margin-top: var(--space-md);
+        }
+
+        .emergency-call-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #dc2626, #f43f5e);
+          color: white;
+          border-radius: 12px;
+          box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+          font-weight: 700;
+          font-size: var(--font-sm);
+          transition: all 0.2s ease;
+          animation: pulse 2s infinite;
+          border: none;
+          cursor: pointer;
+        }
+        .emergency-call-btn:hover {
+          background: linear-gradient(135deg, #b91c1c, #e11d48);
+        }
+        .emergency-ping {
+          display: flex;
+          height: 8px;
+          width: 8px;
+          position: relative;
+        }
+        .emergency-ping-wave {
+          position: absolute;
+          display: inline-flex;
+          height: 100%;
+          width: 100%;
+          border-radius: 9999px;
+          background: white;
+          opacity: 0.75;
+          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .emergency-ping-dot {
+          position: relative;
+          display: inline-flex;
+          border-radius: 9999px;
+          height: 8px;
+          width: 8px;
+          background: white;
+        }
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+
+        .follow-notification-panel {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          z-index: 40;
+          width: 320px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .follow-notification-card {
+          padding: 16px;
+          border-radius: 16px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(139, 92, 246, 0.4);
+          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          color: var(--text-primary);
+          font-size: var(--font-sm);
+          animation: fadeIn 0.5s ease forwards;
+        }
+        .follow-notif-header {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 8px;
+        }
+        .follow-notif-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .follow-notif-type {
+          font-size: var(--font-xs);
+          font-weight: 700;
+          color: #a78bfa;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .follow-notif-date {
+          font-size: 10px;
+          color: var(--text-secondary);
+          flex-shrink: 0;
+        }
+        .follow-notif-message {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+          font-style: italic;
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 12px;
+          padding: 10px;
+        }
+        .follow-notif-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .follow-decline-btn {
+          flex: 1;
+          padding: 6px 0;
+          border-radius: 12px;
+          background: rgba(220, 38, 38, 0.1);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          transition: all 0.3s ease;
+          font-size: var(--font-xs);
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .follow-decline-btn:hover {
+          background: #dc2626;
+          color: white;
+        }
+        .follow-decline-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        .follow-accept-btn {
+          flex: 1;
+          padding: 6px 0;
+          border-radius: 12px;
+          background: rgba(5, 150, 105, 0.1);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          transition: all 0.3s ease;
+          font-size: var(--font-xs);
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .follow-accept-btn:hover {
+          background: #059669;
+          color: white;
+        }
+        .follow-accept-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .emergency-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          padding: 16px;
+          color: var(--text-primary);
+        }
+        .emergency-modal-content {
+          width: 100%;
+          max-width: 448px;
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          text-align: left;
+        }
+        .emergency-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .emergency-modal-title {
+          font-size: var(--font-xl);
+          font-weight: 700;
+          color: var(--color-danger);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .emergency-modal-close {
+          padding: 4px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.7);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+          display: flex;
+        }
+        .emergency-modal-close:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+        .emergency-modal-close svg {
+          width: 20px;
+          height: 20px;
+        }
+        .emergency-modal-desc {
+          font-size: var(--font-sm);
+          color: var(--text-secondary);
+        }
+        .emergency-doctor-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          max-height: 40vh;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+        .emergency-doctor-item {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 14px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          text-align: left;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          width: 100%;
+          color: var(--text-primary);
+        }
+        .emergency-doctor-item:hover {
+          border-color: rgba(239, 68, 68, 0.5);
+          background: rgba(239, 68, 68, 0.05);
+        }
+        .emergency-doctor-info {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .emergency-doctor-name {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+        .emergency-doctor-spec {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+        .emergency-doctor-hospital {
+          font-size: 10px;
+          color: var(--text-muted);
+        }
+        .emergency-call-now-badge {
+          font-size: var(--font-xs);
+          color: #f87171;
+          font-weight: 700;
+          background: rgba(248, 113, 113, 0.1);
+          padding: 4px 10px;
+          border-radius: 8px;
+          border: 1px solid rgba(248, 113, 113, 0.2);
+        }
+        .emergency-no-doctors {
+          text-align: center;
+          padding: 24px 0;
+          color: var(--text-muted);
+          font-size: var(--font-sm);
         }
       `}</style>
     </div>

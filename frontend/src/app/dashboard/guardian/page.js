@@ -60,7 +60,11 @@ export default function GuardianDashboard() {
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to load guardian dashboard records.');
+      if (err.message && err.message.toLowerCase().includes('profile not found')) {
+        setError('Guardian profile not found. Your session may be stale or the database was reset. Please click Logout and register a new guardian profile.');
+      } else {
+        setError('Failed to load guardian dashboard records.');
+      }
     } finally {
       setLoading(false);
     }
@@ -173,24 +177,16 @@ export default function GuardianDashboard() {
       </div>
 
       {/* Tabs Row */}
-      <div className="tabs-row flex-row border-b border-slate-800">
+      <div className="tabs-row">
         <button
           onClick={() => setActiveTab('linked')}
-          className={`tab-btn py-3 px-6 font-semibold text-sm transition ${
-            activeTab === 'linked'
-              ? 'border-b-2 border-teal-500 text-teal-400 font-bold'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          className={`tab-btn ${activeTab === 'linked' ? 'active' : ''}`}
         >
           My Linked Patients ({patients.length})
         </button>
         <button
           onClick={() => setActiveTab('nearby')}
-          className={`tab-btn py-3 px-6 font-semibold text-sm transition ${
-            activeTab === 'nearby'
-              ? 'border-b-2 border-teal-500 text-teal-400 font-bold'
-              : 'text-slate-400 hover:text-white'
-          }`}
+          className={`tab-btn ${activeTab === 'nearby' ? 'active' : ''}`}
         >
           Nearby Patients (10 km Radius) ({nearbyPatients.length})
         </button>
@@ -231,18 +227,18 @@ export default function GuardianDashboard() {
                 <div className="no-patients glass-card flex-col flex-center py-12 text-center text-slate-500">
                   <span>📍</span>
                   <p>No patients detected in system within 10 km of your current coordinates.</p>
-                  <p className="text-xs text-slate-600 mt-1">Make sure you have captured your coordinates using the badge above.</p>
+                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>Make sure you have captured your coordinates using the badge above.</p>
                 </div>
               ) : (
                 <div className="patients-grid flex-col">
                   {nearbyPatients.map((patient) => (
-                    <div key={patient.id} className="relative">
+                    <div key={patient.id} className="distance-badge-container">
                       <PatientCard
                         patient={patient}
                         onClick={() => handleOpenPatientDetails(patient)}
                       />
                       {patient.distance_km !== undefined && (
-                        <span className="absolute top-4 right-4 bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full pointer-events-none">
+                        <span className="distance-badge">
                           📍 {patient.distance_km} km away
                         </span>
                       )}
@@ -326,58 +322,58 @@ export default function GuardianDashboard() {
 
       {/* Patient Details & Consultation Summaries Modal */}
       {viewingPatient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
-          <div className="w-full max-w-2xl p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-5 text-left max-h-[85vh] overflow-y-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <h3 className="text-xl font-bold text-teal-400">{viewingPatient.full_name}</h3>
-                <span className="text-xs text-slate-400">ABHA ID: {viewingPatient.abha_id || 'Not Linked'}</span>
+        <div className="details-modal-overlay">
+          <div className="details-modal-container">
+            <div className="details-modal-header">
+              <div className="details-modal-title-wrapper">
+                <h3 className="details-modal-title">{viewingPatient.full_name}</h3>
+                <span className="details-modal-subtitle">ABHA ID: {viewingPatient.abha_id || 'Not Linked'}</span>
               </div>
               <button
                 onClick={() => setViewingPatient(null)}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
+                className="details-modal-close-btn"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="details-modal-close-icon">
                   <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 1 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
 
             {/* Demographics Card */}
-            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 grid grid-cols-2 gap-4 text-sm text-slate-300">
-              <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider block">Age / Gender</span>
-                <strong className="text-white text-base">{viewingPatient.age} yrs / {viewingPatient.gender}</strong>
+            <div className="demographics-card">
+              <div className="demographics-item">
+                <span className="demographics-label">Age / Gender</span>
+                <strong className="demographics-value">{viewingPatient.age} yrs / {viewingPatient.gender}</strong>
               </div>
-              <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider block">Location</span>
-                <strong className="text-white text-base">{viewingPatient.village}, {viewingPatient.district}</strong>
+              <div className="demographics-item">
+                <span className="demographics-label">Location</span>
+                <strong className="demographics-value">{viewingPatient.village}, {viewingPatient.district}</strong>
               </div>
-              <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider block">Literacy Level</span>
-                <strong className="text-white text-base capitalize">{viewingPatient.literacy_level?.replace('_', ' ') || 'Literate'}</strong>
+              <div className="demographics-item">
+                <span className="demographics-label">Literacy Level</span>
+                <strong className="demographics-value" style={{ textTransform: 'capitalize' }}>{viewingPatient.literacy_level?.replace('_', ' ') || 'Literate'}</strong>
               </div>
-              <div>
-                <span className="text-xs text-slate-500 uppercase tracking-wider block">Language Preference</span>
-                <strong className="text-white text-base capitalize">{viewingPatient.language_preference || 'English'}</strong>
+              <div className="demographics-item">
+                <span className="demographics-label">Language Preference</span>
+                <strong className="demographics-value" style={{ textTransform: 'capitalize' }}>{viewingPatient.language_preference || 'English'}</strong>
               </div>
             </div>
 
             {/* Shared Consultations Section */}
-            <div className="flex flex-col gap-3">
-              <h4 className="text-base font-bold text-slate-200 border-b border-slate-800 pb-2">Shared Doctor Consultations</h4>
+            <div className="consultations-section">
+              <h4 className="consultations-title">Shared Doctor Consultations</h4>
               
               {consultationsLoading ? (
                 <div className="flex-center py-6"><div className="spinner animate-spin"></div></div>
               ) : consultationsError ? (
-                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex flex-col gap-1">
+                <div className="consultations-restricted">
                   <strong>🔒 Access Restricted</strong>
                   <p>{consultationsError}</p>
                 </div>
               ) : consultations.length === 0 ? (
-                <p className="text-xs text-slate-500 italic py-4 text-center">No clinical consultation summaries shared with you yet.</p>
+                <p className="consultations-empty">No clinical consultation summaries shared with you yet.</p>
               ) : (
-                <div className="flex flex-col gap-4">
+                <div className="consultations-list">
                   {consultations.map((c) => {
                     const cDate = new Date(c.scheduled_at).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -393,35 +389,35 @@ export default function GuardianDashboard() {
                     }
                     
                     return (
-                      <div key={c.id} className="p-4.5 rounded-2xl bg-white/5 border border-white/10 flex flex-col gap-3">
-                        <div className="flex justify-between items-center text-xs border-b border-slate-800/80 pb-2">
-                          <strong className="text-teal-400 uppercase tracking-wider">{c.session_type?.replace('_', ' ')}</strong>
-                          <span className="text-slate-400">Date: {cDate}</span>
+                      <div key={c.id} className="consultation-item-card">
+                        <div className="consultation-card-header">
+                          <strong className="consultation-card-type">{c.session_type?.replace('_', ' ')}</strong>
+                          <span className="consultation-card-date">Date: {cDate}</span>
                         </div>
                         
                         {parsedSummary && typeof parsedSummary === 'object' ? (
-                          <div className="flex flex-col gap-2.5 text-xs text-slate-300">
+                          <div className="consultation-summary-body">
                             {parsedSummary.summary && (
                               <div>
-                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">Clinical Summary</span>
-                                <p className="mt-0.5 text-[13px] leading-relaxed">"{parsedSummary.summary}"</p>
+                                <span className="summary-block-label">Clinical Summary</span>
+                                <p className="summary-block-text">"{parsedSummary.summary}"</p>
                               </div>
                             )}
                             {parsedSummary.verdict && (
                               <div>
-                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">Doctor Verdict</span>
-                                <p className="mt-0.5 text-[13px] leading-relaxed font-semibold text-emerald-400">"{parsedSummary.verdict}"</p>
+                                <span className="summary-block-label">Doctor Verdict</span>
+                                <p className="summary-block-text summary-verdict-text">"{parsedSummary.verdict}"</p>
                               </div>
                             )}
                             {parsedSummary.notes && (
                               <div>
-                                <span className="text-slate-500 font-semibold uppercase text-[10px] tracking-wider block">Caregiver Instructions</span>
-                                <p className="mt-0.5 text-[13px] leading-relaxed italic">"{parsedSummary.notes}"</p>
+                                <span className="summary-block-label">Caregiver Instructions</span>
+                                <p className="summary-block-text" style={{ fontStyle: 'italic' }}>"{parsedSummary.notes}"</p>
                               </div>
                             )}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-300 leading-relaxed">"{c.consultation_summary}"</p>
+                          <p className="summary-block-text" style={{ fontSize: '12px' }}>"{c.consultation_summary}"</p>
                         )}
                       </div>
                     );
@@ -548,6 +544,259 @@ export default function GuardianDashboard() {
           text-transform: uppercase;
           color: var(--color-guardian-light);
           margin-bottom: var(--space-xs);
+        }
+
+        .tabs-row {
+          display: flex;
+          flex-direction: row;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: 16px;
+        }
+
+        .tab-btn {
+          padding: 12px 24px;
+          font-size: var(--font-sm);
+          font-weight: 600;
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+        }
+
+        .tab-btn:hover {
+          color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+          border-bottom-color: #0d9488;
+          color: #2dd4bf;
+          font-weight: 700;
+        }
+
+        .distance-badge {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          background: rgba(13, 148, 136, 0.1);
+          color: #2dd4bf;
+          border: 1px solid rgba(13, 148, 136, 0.2);
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          pointer-events: none;
+        }
+
+        .distance-badge-container {
+          position: relative;
+        }
+
+        .details-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          padding: 16px;
+          color: var(--text-primary);
+        }
+
+        .details-modal-container {
+          width: 100%;
+          max-width: 672px; /* max-w-2xl */
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+          text-align: left;
+          max-height: 85vh;
+          overflow-y: auto;
+        }
+
+        .details-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .details-modal-title-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .details-modal-title {
+          font-size: var(--font-xl);
+          font-weight: 700;
+          color: #2dd4bf;
+          margin: 0;
+        }
+
+        .details-modal-subtitle {
+          font-size: var(--font-xs);
+          color: var(--text-muted);
+        }
+
+        .details-modal-close-btn {
+          padding: 4px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.7);
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .details-modal-close-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+
+        .details-modal-close-icon {
+          width: 20px;
+          height: 20px;
+        }
+
+        .demographics-card {
+          padding: 16px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          font-size: var(--font-sm);
+          color: var(--text-secondary);
+        }
+
+        .demographics-item {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .demographics-label {
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+        }
+
+        .demographics-value {
+          color: var(--text-primary);
+          font-size: var(--font-base);
+          font-weight: 700;
+        }
+
+        .consultations-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .consultations-title {
+          font-size: var(--font-base);
+          font-weight: 700;
+          color: var(--text-secondary);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          padding-bottom: 8px;
+          margin: 0;
+        }
+
+        .consultations-restricted {
+          padding: 16px;
+          border-radius: 16px;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          font-size: var(--font-xs);
+          color: #f87171;
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .consultations-empty {
+          font-size: var(--font-xs);
+          color: var(--text-muted);
+          font-style: italic;
+          padding: 16px 0;
+          text-align: center;
+        }
+
+        .consultations-list {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .consultation-item-card {
+          padding: 18px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .consultation-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: var(--font-xs);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          padding-bottom: 8px;
+        }
+
+        .consultation-card-type {
+          color: #2dd4bf;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .consultation-card-date {
+          color: var(--text-muted);
+        }
+
+        .consultation-summary-body {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+
+        .summary-block-label {
+          font-size: 10px;
+          color: var(--text-muted);
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          display: block;
+        }
+
+        .summary-block-text {
+          margin-top: 2px;
+          font-size: 13px;
+          line-height: 1.5;
+        }
+
+        .summary-verdict-text {
+          color: #34d399;
+          font-weight: 600;
         }
       `}</style>
     </div>

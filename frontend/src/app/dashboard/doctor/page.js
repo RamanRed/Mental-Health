@@ -95,7 +95,11 @@ export default function DoctorDashboard() {
       }
     } catch (err) {
       console.error(err);
-      setError('Failed to load doctor dashboard data.');
+      if (err.message && err.message.toLowerCase().includes('profile not found')) {
+        setError('Doctor profile not found. Your session may be stale or the database was reset. Please click Logout and register a new doctor profile.');
+      } else {
+        setError('Failed to load doctor dashboard data.');
+      }
     } finally {
       setLoading(false);
     }
@@ -329,19 +333,19 @@ export default function DoctorDashboard() {
               <div className="brief-card glass-card-static flex-col">
                 <div className="brief-header flex-between">
                   <h4>Pre-Consultation Brief</h4>
-                  <div className="flex items-center gap-3">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <button
                       onClick={() => handleInitiateCall(selectedPatient)}
-                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-500 hover:from-teal-700 hover:to-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-teal-500/10"
+                      className="doctor-call-btn"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4 h-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" style={{ width: '16px', height: '16px' }}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
                       </svg>
                       Start Call 📹
                     </button>
                     <button
                       onClick={() => setShowFollowModal(true)}
-                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-violet-600 to-purple-500 hover:from-violet-700 hover:to-purple-600 text-white font-bold text-xs flex items-center gap-1.5 transition-all duration-200 shadow-md shadow-violet-500/10"
+                      className="doctor-follow-btn"
                     >
                       📨 Send Follow-Up
                     </button>
@@ -381,36 +385,35 @@ export default function DoctorDashboard() {
 
                 {/* Patient Analytics Mini-Panel */}
                 {patientAnalytics && (
-                  <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-col gap-3">
-                    <h5 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Patient Data Analytics (Last 30 Days)</h5>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-0.5 text-center">
-                        <span className="text-lg font-bold text-teal-400">{patientAnalytics.current_streak}</span>
-                        <span className="text-[10px] text-slate-500">Day Streak</span>
+                  <div className="analytics-panel">
+                    <h5 className="analytics-title">Patient Data Analytics (Last 30 Days)</h5>
+                    <div className="analytics-grid">
+                      <div className="analytics-stat">
+                        <span className="analytics-stat-value teal">{patientAnalytics.current_streak}</span>
+                        <span className="analytics-stat-label">Day Streak</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-0.5 text-center">
-                        <span className="text-lg font-bold text-amber-400">{patientAnalytics.avg_mood_score ?? '—'}</span>
-                        <span className="text-[10px] text-slate-500">Avg Mood</span>
+                      <div className="analytics-stat">
+                        <span className="analytics-stat-value amber">{patientAnalytics.avg_mood_score ?? '—'}</span>
+                        <span className="analytics-stat-label">Avg Mood</span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 flex flex-col gap-0.5 text-center">
-                        <span className="text-lg font-bold text-emerald-400">{patientAnalytics.session_stats?.completed}</span>
-                        <span className="text-[10px] text-slate-500">Sessions Done</span>
+                      <div className="analytics-stat">
+                        <span className="analytics-stat-value emerald">{patientAnalytics.session_stats?.completed}</span>
+                        <span className="analytics-stat-label">Sessions Done</span>
                       </div>
                     </div>
                     {/* Mood trend sparkline bar chart */}
                     {patientAnalytics.mood_trend?.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-slate-500 uppercase">Mood Trend</span>
-                        <div className="flex items-end gap-0.5 h-10">
+                      <div className="mood-trend-section">
+                        <span className="mood-trend-label">Mood Trend</span>
+                        <div className="mood-trend-bars">
                           {patientAnalytics.mood_trend.slice(-14).map((t, i) => (
                             <div
                               key={i}
                               title={`${t.date}: ${t.avg_score}`}
-                              className="flex-1 rounded-sm transition-all"
+                              className="mood-trend-bar"
                               style={{
                                 height: `${(t.avg_score / 10) * 100}%`,
                                 background: t.avg_score >= 7 ? '#10b981' : t.avg_score >= 4 ? '#f59e0b' : '#ef4444',
-                                minHeight: '4px',
                               }}
                             />
                           ))}
@@ -419,20 +422,20 @@ export default function DoctorDashboard() {
                     )}
                     {/* Risk trend badges */}
                     {patientAnalytics.risk_trend?.length > 0 && (
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[10px] text-slate-500 uppercase">Risk History</span>
-                        <div className="flex flex-wrap gap-1">
+                      <div className="risk-trend-section">
+                        <span className="mood-trend-label">Risk History</span>
+                        <div className="risk-trend-badges">
                           {patientAnalytics.risk_trend.slice(-8).map((r, i) => (
-                            <span key={i} className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase ${
-                              r.risk_level === 'high' ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              : r.risk_level === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                              : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            <span key={i} className={`risk-trend-badge ${
+                              r.risk_level === 'high' ? 'high'
+                              : r.risk_level === 'medium' ? 'medium'
+                              : 'low'
                             }`}>{r.risk_level}</span>
                           ))}
                         </div>
                       </div>
                     )}
-                    <div className="flex items-center gap-3 text-[10px] text-slate-500">
+                    <div className="analytics-footer">
                       <span>📝 {patientAnalytics.total_mood_entries} mood logs</span>
                       <span>📋 {patientAnalytics.questionnaire_count} questionnaires</span>
                       <span>🏥 {patientAnalytics.guardian_notes_count} guardian notes</span>
@@ -528,7 +531,7 @@ export default function DoctorDashboard() {
               <p>No active sessions scheduled yet.</p>
             </div>
           ) : (
-            <div className="sessions-vertical-list flex-col max-h-[40vh] overflow-y-auto pr-1">
+            <div className="sessions-vertical-list flex-col" style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '4px' }}>
               {sessions.map((s) => {
                 const sDate = new Date(s.scheduled_at).toLocaleDateString('en-IN', {
                   day: '2-digit',
@@ -557,18 +560,18 @@ export default function DoctorDashboard() {
           )}
 
           {/* Pending Appointment Requests inside Doctor Dashboard */}
-          <div className="border-t border-slate-800/80 mt-6 pt-4 flex flex-col gap-3">
-            <h3 className="text-base font-bold text-slate-300 px-1">Appointment Requests ({pendingAppointments.length})</h3>
+          <div className="pending-requests-section">
+            <h3 className="pending-requests-title">Appointment Requests ({pendingAppointments.length})</h3>
             {pendingAppointments.length === 0 ? (
-              <p className="text-xs text-slate-500 italic px-2 py-4 text-center">No pending patient appointment requests.</p>
+              <p className="pending-requests-empty">No pending patient appointment requests.</p>
             ) : (
-              <div className="flex flex-col gap-3 max-h-[40vh] overflow-y-auto pr-1">
+              <div className="pending-requests-list">
                 {pendingAppointments.map((appt) => (
-                  <div key={appt.id} className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col gap-2.5 text-xs text-slate-300 text-left transition hover:bg-white/10">
-                    <div className="flex justify-between items-start">
-                      <div className="flex flex-col gap-0.5">
-                        <strong className="text-white text-sm">Patient: {appt.patient_name}</strong>
-                        <span className="text-[10px] text-slate-400">
+                  <div key={appt.id} className="pending-appt-card">
+                    <div className="pending-appt-header">
+                      <div className="pending-appt-patient">
+                        <strong className="pending-appt-name">Patient: {appt.patient_name}</strong>
+                        <span className="pending-appt-date">
                           Date: {new Date(appt.preferred_date).toLocaleDateString('en-IN', {
                             day: '2-digit',
                             month: 'short',
@@ -577,31 +580,25 @@ export default function DoctorDashboard() {
                           })}
                         </span>
                       </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                        appt.urgency === 'emergency'
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30 animate-pulse'
-                          : appt.urgency === 'urgent'
-                          ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                          : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
-                      }`}>
+                      <span className={`urgency-badge ${appt.urgency}`}>
                         {appt.urgency}
                       </span>
                     </div>
                     {appt.patient_notes && (
-                      <p className="p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/80 text-[11px] italic">
+                      <p className="pending-appt-notes">
                         "{appt.patient_notes}"
                       </p>
                     )}
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="pending-appt-actions">
                       <button
                         onClick={() => handleOpenRejectModal(appt.id)}
-                        className="flex-1 py-1.5 rounded-xl bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 transition text-xs font-semibold"
+                        className="appt-decline-btn"
                       >
                         Decline
                       </button>
                       <button
                         onClick={() => handleOpenAcceptModal(appt.id)}
-                        className="flex-1 py-1.5 rounded-xl bg-emerald-600/10 hover:bg-emerald-600 text-emerald-400 hover:text-white border border-emerald-500/20 transition text-xs font-semibold"
+                        className="appt-accept-btn"
                       >
                         Accept
                       </button>
@@ -628,63 +625,59 @@ export default function DoctorDashboard() {
 
       {/* Send Follow-Up Request Modal */}
       {showFollowModal && selectedPatient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
+        <div className="follow-modal-overlay">
           <form
             onSubmit={handleSendFollowRequest}
-            className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-violet-800/40 shadow-2xl flex flex-col gap-4 text-left"
+            className="follow-modal-form"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-violet-400">📨 Send Follow-Up Request</h3>
+            <div className="follow-modal-header">
+              <h3 className="follow-modal-title">📨 Send Follow-Up Request</h3>
               <button type="button" onClick={() => setShowFollowModal(false)}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                className="modal-close-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="modal-close-icon">
                   <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 1 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-slate-400">Sending follow-up request to: <strong className="text-white">{selectedPatient.full_name}</strong></p>
+            <p className="follow-modal-recipient">Sending follow-up request to: <strong style={{ color: 'var(--text-primary)' }}>{selectedPatient.full_name}</strong></p>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Urgency Level</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Urgency Level</label>
               <select value={followUrgency} onChange={(e) => setFollowUrgency(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-violet-500 transition">
+                className="modal-field-select">
                 <option value="routine">Routine Follow-Up</option>
                 <option value="urgent">Urgent Follow-Up</option>
                 <option value="emergency">Emergency Review</option>
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Suggested Date (optional)</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Suggested Date (optional)</label>
               <input type="datetime-local" value={followDate} onChange={(e) => setFollowDate(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-violet-500 transition" />
+                className="modal-field-input" />
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Message to Patient</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Message to Patient</label>
               <textarea value={followMessage} onChange={(e) => setFollowMessage(e.target.value)}
                 rows={3} placeholder="Describe reason for follow-up, instructions or concerns..."
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-violet-500 transition resize-none" />
+                className="modal-field-textarea" />
             </div>
 
             <button type="submit" disabled={sendingFollow}
-              className="w-full mt-2 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition disabled:opacity-60">
+              className="follow-submit-btn">
               {sendingFollow ? 'Sending Request...' : 'Send Follow-Up Request 📨'}
             </button>
 
             {/* My sent follow requests list */}
             {myFollowRequests.length > 0 && (
-              <div className="border-t border-slate-800 pt-4 flex flex-col gap-2">
-                <h4 className="text-xs font-bold text-slate-400 uppercase">Previously Sent Requests</h4>
-                <div className="max-h-40 overflow-y-auto flex flex-col gap-2">
+              <div className="follow-history-section">
+                <h4 className="follow-history-title">Previously Sent Requests</h4>
+                <div className="follow-history-list">
                   {myFollowRequests.slice(0, 5).map((r) => (
-                    <div key={r.id} className="flex justify-between items-center p-2.5 rounded-xl bg-white/5 border border-white/10 text-xs">
-                      <span className="text-slate-300">{r.doctor_name || 'You'} → {r.patient_id.slice(0,8)}...</span>
-                      <span className={`font-bold px-2 py-0.5 rounded-full text-[10px] uppercase ${
-                        r.status === 'accepted' ? 'bg-emerald-500/20 text-emerald-400'
-                        : r.status === 'declined' ? 'bg-red-500/20 text-red-400'
-                        : 'bg-amber-500/20 text-amber-400'
-                      }`}>{r.status}</span>
+                    <div key={r.id} className="follow-history-item">
+                      <span>{r.doctor_name || 'You'} → {r.patient_id.slice(0,8)}...</span>
+                      <span className={`follow-status-badge ${r.status}`}>{r.status}</span>
                     </div>
                   ))}
                 </div>
@@ -696,34 +689,34 @@ export default function DoctorDashboard() {
 
       {/* Doctor Accept Request Modal */}
       {showAcceptModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
+        <div className="accept-modal-overlay">
           <form
             onSubmit={handleAcceptAppointmentSubmit}
-            className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-4 text-left"
+            className="accept-modal-form"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-emerald-400">Accept Appointment Request</h3>
+            <div className="follow-modal-header">
+              <h3 className="accept-modal-title">Accept Appointment Request</h3>
               <button
                 type="button"
                 onClick={() => setShowAcceptModal(false)}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition"
+                className="modal-close-btn"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="modal-close-icon">
                   <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 1 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
             
-            <p className="text-xs text-slate-400">
+            <p className="accept-modal-desc">
               Configure session parameters to finalize scheduling this consultation in the database.
             </p>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Session Type</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Session Type</label>
               <select
                 value={acceptSessionType}
                 onChange={(e) => setAcceptSessionType(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="modal-field-select"
               >
                 <option value="early_screening">Initial Diagnostic Screening</option>
                 <option value="follow_up_1">Clinical Follow-up 1</option>
@@ -731,12 +724,12 @@ export default function DoctorDashboard() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Format</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Format</label>
               <select
                 value={acceptFormat}
                 onChange={(e) => setAcceptFormat(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="modal-field-select"
               >
                 <option value="online_video">Online Video Call</option>
                 <option value="online_audio">Online Audio Call</option>
@@ -744,12 +737,12 @@ export default function DoctorDashboard() {
               </select>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Clinical Form Template</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Clinical Form Template</label>
               <select
                 value={acceptFormId}
                 onChange={(e) => setAcceptFormId(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="modal-field-select"
               >
                 {clinicalForms.map((f) => (
                   <option key={f.id} value={f.id}>{f.form_name}</option>
@@ -759,7 +752,7 @@ export default function DoctorDashboard() {
 
             <button
               type="submit"
-              className="w-full mt-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition"
+              className="accept-submit-btn"
             >
               Approve & Schedule Session ➔
             </button>
@@ -769,39 +762,39 @@ export default function DoctorDashboard() {
 
       {/* Doctor Reject Request Modal */}
       {showRejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
+        <div className="accept-modal-overlay">
           <form
             onSubmit={handleRejectAppointmentSubmit}
-            className="w-full max-w-md p-6 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col gap-4 text-left"
+            className="accept-modal-form"
           >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-red-500">Decline Appointment Request</h3>
+            <div className="follow-modal-header">
+              <h3 className="reject-modal-title">Decline Appointment Request</h3>
               <button
                 type="button"
                 onClick={() => setShowRejectModal(false)}
-                className="p-1 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition"
+                className="modal-close-btn"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="modal-close-icon">
                   <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 0 1 1.06 0L12 10.94l5.47-5.47a.75.75 0 1 1 1.06 1.06L13.06 12l5.47 5.47a.75.75 0 1 1-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 1 1-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
                 </svg>
               </button>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Rejection Reason *</label>
+            <div className="modal-field-group">
+              <label className="modal-field-label">Rejection Reason *</label>
               <textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 rows={4}
                 placeholder="Provide a clinical or scheduling reason for decline (e.g. out of clinic hours, referring to another specialist)..."
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-red-500 transition-colors resize-none"
+                className="modal-field-textarea"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full mt-2 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-sm transition"
+              className="reject-submit-btn"
             >
               Submit Decline ➔
             </button>
@@ -1025,6 +1018,512 @@ export default function DoctorDashboard() {
           border-radius: var(--radius-md);
           text-align: center;
           font-size: var(--font-sm);
+        }
+
+        .doctor-call-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #0d9488, #10b981);
+          color: white;
+          font-weight: 700;
+          font-size: var(--font-xs);
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.1);
+          border: none;
+          cursor: pointer;
+        }
+        .doctor-call-btn:hover {
+          background: linear-gradient(135deg, #0f766e, #059669);
+        }
+        .doctor-follow-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 14px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #7c3aed, #a855f7);
+          color: white;
+          font-weight: 700;
+          font-size: var(--font-xs);
+          transition: all 0.2s ease;
+          box-shadow: 0 4px 6px -1px rgba(139, 92, 246, 0.1);
+          border: none;
+          cursor: pointer;
+        }
+        .doctor-follow-btn:hover {
+          background: linear-gradient(135deg, #6d28d9, #9333ea);
+        }
+        .analytics-panel {
+          margin-top: 12px;
+          padding-top: 12px;
+          border-top: 1px solid rgba(30, 41, 59, 0.8);
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .analytics-title {
+          font-size: 10px;
+          font-weight: 700;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+        }
+        .analytics-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        .analytics-stat {
+          padding: 10px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          text-align: center;
+        }
+        .analytics-stat-value {
+          font-size: var(--font-lg);
+          font-weight: 700;
+        }
+        .analytics-stat-value.teal { color: #2dd4bf; }
+        .analytics-stat-value.amber { color: #fbbf24; }
+        .analytics-stat-value.emerald { color: #34d399; }
+        .analytics-stat-label {
+          font-size: 10px;
+          color: var(--text-muted);
+        }
+        .mood-trend-section {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .mood-trend-label {
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+        }
+        .mood-trend-bars {
+          display: flex;
+          align-items: flex-end;
+          gap: 2px;
+          height: 40px;
+        }
+        .mood-trend-bar {
+          flex: 1;
+          border-radius: 2px;
+          transition: all 0.3s ease;
+          min-height: 4px;
+        }
+        .risk-trend-section {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .risk-trend-badges {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+        .risk-trend-badge {
+          font-size: 9px;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: var(--radius-full);
+          text-transform: uppercase;
+        }
+        .risk-trend-badge.high {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .risk-trend-badge.medium {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .risk-trend-badge.low {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .analytics-footer {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 10px;
+          color: var(--text-muted);
+        }
+        .pending-requests-section {
+          border-top: 1px solid rgba(30, 41, 59, 0.8);
+          margin-top: 24px;
+          padding-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .pending-requests-title {
+          font-size: var(--font-base);
+          font-weight: 700;
+          color: var(--text-secondary);
+          padding-left: 4px;
+        }
+        .pending-requests-empty {
+          font-size: var(--font-xs);
+          color: var(--text-muted);
+          font-style: italic;
+          padding: 16px 8px;
+          text-align: center;
+        }
+        .pending-requests-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: 40vh;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+        .pending-appt-card {
+          padding: 16px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+          text-align: left;
+          transition: all 0.3s ease;
+        }
+        .pending-appt-card:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .pending-appt-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+        }
+        .pending-appt-patient {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .pending-appt-name {
+          color: var(--text-primary);
+          font-size: var(--font-sm);
+          font-weight: 700;
+        }
+        .pending-appt-date {
+          font-size: 10px;
+          color: var(--text-secondary);
+        }
+        .urgency-badge {
+          font-size: 9px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .urgency-badge.emergency {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          animation: pulse 2s infinite;
+        }
+        .urgency-badge.urgent {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .urgency-badge.normal {
+          background: rgba(13, 148, 136, 0.2);
+          color: #2dd4bf;
+          border: 1px solid rgba(13, 148, 136, 0.3);
+        }
+        .pending-appt-notes {
+          padding: 10px;
+          border-radius: 12px;
+          background: rgba(2, 6, 23, 0.4);
+          border: 1px solid rgba(30, 41, 59, 0.8);
+          font-size: 11px;
+          font-style: italic;
+        }
+        .pending-appt-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 4px;
+        }
+        .appt-decline-btn {
+          flex: 1;
+          padding: 6px 0;
+          border-radius: 12px;
+          background: rgba(220, 38, 38, 0.1);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          transition: all 0.3s ease;
+          font-size: var(--font-xs);
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .appt-decline-btn:hover {
+          background: #dc2626;
+          color: white;
+        }
+        .appt-accept-btn {
+          flex: 1;
+          padding: 6px 0;
+          border-radius: 12px;
+          background: rgba(5, 150, 105, 0.1);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          transition: all 0.3s ease;
+          font-size: var(--font-xs);
+          font-weight: 600;
+          cursor: pointer;
+        }
+        .appt-accept-btn:hover {
+          background: #059669;
+          color: white;
+        }
+        .follow-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          padding: 16px;
+        }
+        .follow-modal-form {
+          width: 100%;
+          max-width: 448px;
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(91, 33, 182, 0.4);
+          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          text-align: left;
+          color: var(--text-primary);
+        }
+        .follow-modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .follow-modal-title {
+          font-size: var(--font-lg);
+          font-weight: 700;
+          color: #a78bfa;
+        }
+        .modal-close-btn {
+          padding: 4px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.7);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+        }
+        .modal-close-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: white;
+        }
+        .modal-close-icon {
+          width: 20px;
+          height: 20px;
+        }
+        .follow-modal-recipient {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+        .modal-field-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .modal-field-label {
+          font-size: var(--font-xs);
+          font-weight: 600;
+          color: var(--text-secondary);
+        }
+        .modal-field-select,
+        .modal-field-input,
+        .modal-field-textarea {
+          width: 100%;
+          padding: 12px;
+          border-radius: 12px;
+          background: var(--bg-input);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          font-size: var(--font-sm);
+          color: var(--text-primary);
+          outline: none;
+          transition: border-color 0.3s ease;
+        }
+        .modal-field-select:focus,
+        .modal-field-input:focus,
+        .modal-field-textarea:focus {
+          border-color: #7c3aed;
+        }
+        .modal-field-textarea {
+          resize: none;
+        }
+        .follow-submit-btn {
+          width: 100%;
+          margin-top: 8px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #7c3aed;
+          color: white;
+          font-weight: 600;
+          font-size: var(--font-sm);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+        }
+        .follow-submit-btn:hover {
+          background: #6d28d9;
+        }
+        .follow-submit-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        .follow-history-section {
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          padding-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .follow-history-title {
+          font-size: var(--font-xs);
+          font-weight: 700;
+          color: var(--text-secondary);
+          text-transform: uppercase;
+        }
+        .follow-history-list {
+          max-height: 160px;
+          overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .follow-history-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          font-size: var(--font-xs);
+        }
+        .follow-status-badge {
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          font-size: 10px;
+          text-transform: uppercase;
+        }
+        .follow-status-badge.accepted {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+        }
+        .follow-status-badge.declined {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+        }
+        .follow-status-badge.pending {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+        }
+        .follow-status-badge.sent {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+        }
+        .accept-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          padding: 16px;
+        }
+        .accept-modal-form {
+          width: 100%;
+          max-width: 448px;
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          text-align: left;
+          color: var(--text-primary);
+        }
+        .accept-modal-title {
+          font-size: var(--font-lg);
+          font-weight: 700;
+          color: #34d399;
+        }
+        .accept-modal-desc {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+        .accept-submit-btn {
+          width: 100%;
+          margin-top: 8px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #059669;
+          color: white;
+          font-weight: 600;
+          font-size: var(--font-sm);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+        }
+        .accept-submit-btn:hover {
+          background: #047857;
+        }
+        .reject-modal-title {
+          font-size: var(--font-lg);
+          font-weight: 700;
+          color: var(--color-danger);
+        }
+        .reject-submit-btn {
+          width: 100%;
+          margin-top: 8px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #dc2626;
+          color: white;
+          font-weight: 600;
+          font-size: var(--font-sm);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+        }
+        .reject-submit-btn:hover {
+          background: #b91c1c;
         }
       `}</style>
     </div>

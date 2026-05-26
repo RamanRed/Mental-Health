@@ -103,55 +103,55 @@ export default function PatientAppointmentsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-emerald-500"></div>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 text-white flex flex-col gap-6">
+    <div className="appointments-page">
       
       {/* Back button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard/patient" className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition text-xs font-semibold">
+      <div className="appointments-top-bar">
+        <div className="appointments-top-bar-left">
+          <Link href="/dashboard/patient" className="back-btn">
             ← Dashboard
           </Link>
-          <h1 className="text-2xl font-bold">Appointments Desk</h1>
+          <h1 className="appointments-title">Appointments Desk</h1>
         </div>
       </div>
 
       {error && (
-        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
+        <div className="alert-banner error">
           ⚠️ {error}
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm">
+        <div className="alert-banner success">
           ✨ {successMsg}
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="appointments-grid">
         
         {/* Booking Form */}
-        <div className="lg:col-span-1 p-6 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-4 text-left">
-          <h2 className="text-lg font-bold text-emerald-400">Request New Slot</h2>
-          <p className="text-xs text-slate-400">
+        <div className="booking-form-card">
+          <h2 className="booking-form-title">Request New Slot</h2>
+          <p className="booking-form-desc">
             Book a counseling session. Choose a therapist, date, and describe how you are feeling.
           </p>
 
-          <form onSubmit={handleBookingSubmit} className="flex flex-col gap-4 mt-2">
+          <form onSubmit={handleBookingSubmit} className="booking-form">
             
             {/* Select Doctor */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Choose Specialist *</label>
+            <div className="field-group">
+              <label className="field-label">Choose Specialist *</label>
               <select
                 value={selectedDoctorId}
                 onChange={(e) => setSelectedDoctorId(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="field-select"
                 required
               >
                 {doctors.map((doc) => (
@@ -163,37 +163,37 @@ export default function PatientAppointmentsPage() {
             </div>
 
             {/* Select Date */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Preferred Date *</label>
+            <div className="field-group">
+              <label className="field-label">Preferred Date *</label>
               <input
                 type="date"
                 value={preferredDate}
                 onChange={(e) => setPreferredDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="field-input"
                 required
               />
             </div>
 
             {/* Select Time */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Preferred Time *</label>
+            <div className="field-group">
+              <label className="field-label">Preferred Time *</label>
               <input
                 type="time"
                 value={preferredTime}
                 onChange={(e) => setPreferredTime(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="field-input"
                 required
               />
             </div>
 
             {/* Urgency */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Urgency Level</label>
+            <div className="field-group">
+              <label className="field-label">Urgency Level</label>
               <select
                 value={urgency}
                 onChange={(e) => setUrgency(e.target.value)}
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                className="field-select"
               >
                 <option value="normal">Normal Wellness Check-in</option>
                 <option value="urgent">Urgent Counseling Required</option>
@@ -202,24 +202,24 @@ export default function PatientAppointmentsPage() {
             </div>
 
             {/* Patient Notes */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold text-slate-300">Describe what's on your mind (Optional)</label>
+            <div className="field-group">
+              <label className="field-label">Describe what's on your mind (Optional)</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
                 placeholder="Share any mood trends, concerns, or special notes for your doctor..."
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-sm text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
+                className="field-textarea"
               />
             </div>
 
             <button
               type="submit"
               disabled={bookingLoading || doctors.length === 0}
-              className="w-full mt-2 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-800 disabled:cursor-not-allowed font-semibold text-sm transition shadow-lg shadow-emerald-500/10 flex justify-center items-center gap-2"
+              className="booking-submit-btn"
             >
               {bookingLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <div className="booking-spinner"></div>
               ) : (
                 'Submit Booking Request 📅'
               )}
@@ -229,10 +229,10 @@ export default function PatientAppointmentsPage() {
         </div>
 
         {/* Appointments List */}
-        <div className="lg:col-span-2 p-6 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col gap-4 text-left">
-          <h2 className="text-lg font-bold">Your Requested Slots</h2>
+        <div className="appointments-list-card">
+          <h2 className="appointments-list-title">Your Requested Slots</h2>
           
-          <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="appointments-list">
             {appointments.length > 0 ? (
               appointments.map((appt) => {
                 const isPending = appt.status === 'pending';
@@ -240,33 +240,24 @@ export default function PatientAppointmentsPage() {
                 const isRejected = appt.status === 'rejected';
                 
                 return (
-                  <div
-                    key={appt.id}
-                    className="p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 transition hover:bg-white/10"
-                  >
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white">Dr. {appt.doctor_name}</span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                          appt.urgency === 'emergency'
-                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                            : appt.urgency === 'urgent'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
-                        }`}>
+                  <div key={appt.id} className="appointment-item">
+                    <div className="appointment-info">
+                      <div className="appointment-doctor-row">
+                        <span className="appointment-doctor-name">Dr. {appt.doctor_name}</span>
+                        <span className={`urgency-pill ${appt.urgency}`}>
                           {appt.urgency}
                         </span>
                       </div>
                       
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-400 mt-1">
-                        <span className="flex items-center gap-1">
+                      <div className="appointment-meta">
+                        <span className="appointment-meta-item">
                           📅 {new Date(appt.preferred_date).toLocaleDateString('en-IN', {
                             day: '2-digit',
                             month: 'short',
                             year: 'numeric'
                           })}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="appointment-meta-item">
                           ⏰ {new Date(appt.preferred_date).toLocaleTimeString('en-IN', {
                             hour: '2-digit',
                             minute: '2-digit'
@@ -275,35 +266,27 @@ export default function PatientAppointmentsPage() {
                       </div>
 
                       {appt.patient_notes && (
-                        <p className="text-xs text-slate-400 bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/50 mt-2 italic">
+                        <p className="appointment-notes">
                           " {appt.patient_notes} "
                         </p>
                       )}
 
                       {isRejected && appt.rejection_reason && (
-                        <div className="mt-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 p-2.5 rounded-xl">
+                        <div className="rejection-reason">
                           <strong>Rejection Reason:</strong> {appt.rejection_reason}
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-3 justify-end">
-                      <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        isAccepted
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : isRejected
-                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                          : isPending
-                          ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                          : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'
-                      }`} style={{ textTransform: 'capitalize' }}>
+                    <div className="appointment-actions">
+                      <span className={`status-pill ${isAccepted ? 'accepted' : isRejected ? 'rejected' : isPending ? 'pending' : 'default'}`}>
                         {appt.status}
                       </span>
 
                       {isPending && (
                         <button
                           onClick={() => handleCancelRequest(appt.id)}
-                          className="px-3 py-1.5 rounded-lg bg-red-600/10 hover:bg-red-600 text-red-400 hover:text-white border border-red-500/20 text-xs font-semibold transition"
+                          className="cancel-btn"
                         >
                           Cancel
                         </button>
@@ -313,7 +296,7 @@ export default function PatientAppointmentsPage() {
                 );
               })
             ) : (
-              <div className="text-center py-12 text-slate-500 text-sm">
+              <div className="empty-appointments">
                 No appointment requests yet. Fill in the form on the left to start.
               </div>
             )}
@@ -322,6 +305,348 @@ export default function PatientAppointmentsPage() {
 
       </div>
 
+      <style jsx>{`
+        .appointments-page {
+          max-width: 1152px;
+          margin: 0 auto;
+          padding: 16px;
+          color: var(--text-primary);
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
+        .appointments-top-bar {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .appointments-top-bar-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .back-btn {
+          padding: 6px 12px;
+          border-radius: 8px;
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--text-secondary);
+          transition: all 0.3s ease;
+          font-size: var(--font-xs);
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .back-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--text-primary);
+        }
+        .appointments-title {
+          font-size: var(--font-2xl);
+          font-weight: 700;
+        }
+        .alert-banner {
+          padding: 16px;
+          border-radius: 16px;
+          font-size: var(--font-sm);
+        }
+        .alert-banner.error {
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #f87171;
+        }
+        .alert-banner.success {
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          color: #34d399;
+        }
+        .appointments-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        @media (min-width: 1024px) {
+          .appointments-grid {
+            grid-template-columns: 1fr 2fr;
+          }
+        }
+        .booking-form-card {
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          text-align: left;
+        }
+        .booking-form-title {
+          font-size: var(--font-lg);
+          font-weight: 700;
+          color: #34d399;
+        }
+        .booking-form-desc {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+        .booking-form {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          margin-top: 8px;
+        }
+        .field-group {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .field-label {
+          font-size: var(--font-xs);
+          font-weight: 600;
+          color: var(--text-secondary);
+        }
+        .field-input,
+        .field-select,
+        .field-textarea {
+          width: 100%;
+          padding: 12px;
+          border-radius: 12px;
+          background: var(--bg-input);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          font-size: var(--font-sm);
+          color: var(--text-primary);
+          outline: none;
+          transition: border-color 0.3s ease;
+        }
+        .field-input:focus,
+        .field-select:focus,
+        .field-textarea:focus {
+          border-color: #10b981;
+        }
+        .field-textarea {
+          resize: none;
+        }
+        .booking-submit-btn {
+          width: 100%;
+          margin-top: 8px;
+          padding: 12px;
+          border-radius: 12px;
+          background: #059669;
+          color: white;
+          font-weight: 600;
+          font-size: var(--font-sm);
+          transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 8px;
+        }
+        .booking-submit-btn:hover {
+          background: #047857;
+        }
+        .booking-submit-btn:disabled {
+          background: var(--bg-tertiary);
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+        .booking-spinner {
+          display: inline-block;
+          width: 16px;
+          height: 16px;
+          border: 2px solid white;
+          border-top-color: transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        .appointments-list-card {
+          padding: 24px;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          text-align: left;
+        }
+        .appointments-list-title {
+          font-size: var(--font-lg);
+          font-weight: 700;
+        }
+        .appointments-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          max-height: 70vh;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+        .appointment-item {
+          padding: 16px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          transition: all 0.3s ease;
+        }
+        @media (min-width: 768px) {
+          .appointment-item {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+          }
+        }
+        .appointment-item:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        .appointment-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .appointment-doctor-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .appointment-doctor-name {
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+        .urgency-pill {
+          font-size: 10px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .urgency-pill.emergency {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .urgency-pill.urgent {
+          background: rgba(245, 158, 11, 0.2);
+          color: #fbbf24;
+          border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .urgency-pill.normal {
+          background: rgba(13, 148, 136, 0.2);
+          color: #2dd4bf;
+          border: 1px solid rgba(13, 148, 136, 0.3);
+        }
+        .appointment-meta {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          column-gap: 16px;
+          row-gap: 4px;
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+          margin-top: 4px;
+        }
+        .appointment-meta-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+        .appointment-notes {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+          background: rgba(2, 6, 23, 0.4);
+          padding: 10px;
+          border-radius: 12px;
+          border: 1px solid rgba(30, 41, 59, 0.5);
+          margin-top: 8px;
+          font-style: italic;
+        }
+        .rejection-reason {
+          margin-top: 8px;
+          font-size: var(--font-xs);
+          color: #f87171;
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          padding: 10px;
+          border-radius: 12px;
+        }
+        .appointment-actions {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          justify-content: flex-end;
+        }
+        .status-pill {
+          font-size: var(--font-xs);
+          font-weight: 600;
+          padding: 4px 12px;
+          border-radius: var(--radius-full);
+          text-transform: capitalize;
+        }
+        .status-pill.accepted {
+          background: rgba(16, 185, 129, 0.2);
+          color: #34d399;
+          border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .status-pill.rejected {
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .status-pill.pending {
+          background: rgba(59, 130, 246, 0.2);
+          color: #60a5fa;
+          border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .status-pill.default {
+          background: rgba(100, 116, 139, 0.2);
+          color: var(--text-secondary);
+          border: 1px solid rgba(100, 116, 139, 0.3);
+        }
+        .cancel-btn {
+          padding: 6px 12px;
+          border-radius: 8px;
+          background: rgba(220, 38, 38, 0.1);
+          color: #f87171;
+          border: 1px solid rgba(239, 68, 68, 0.2);
+          font-size: var(--font-xs);
+          font-weight: 600;
+          transition: all 0.3s ease;
+          cursor: pointer;
+        }
+        .cancel-btn:hover {
+          background: #dc2626;
+          color: white;
+        }
+        .empty-appointments {
+          text-align: center;
+          padding: 48px 0;
+          color: var(--text-muted);
+          font-size: var(--font-sm);
+        }
+        .loading-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 400px;
+        }
+        .loading-spinner {
+          width: 40px;
+          height: 40px;
+          border: 2px solid transparent;
+          border-top-color: #10b981;
+          border-bottom-color: #10b981;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

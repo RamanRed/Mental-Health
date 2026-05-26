@@ -409,51 +409,51 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 text-white">
-      <div className="relative w-full max-w-4xl h-[85vh] flex flex-col rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden">
+    <div className="vcall-overlay">
+      <div className="vcall-container">
         
         {/* Top Header info */}
-        <div className="flex items-center justify-between p-4 bg-slate-950/50 border-b border-slate-800 z-10">
-          <div className="flex items-center gap-3">
+        <div className="vcall-header">
+          <div className="vcall-header-left">
             {call.call_type === 'emergency' && (
-              <span className="flex h-3 w-3 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              <span className="emergency-indicator">
+                <span className="emergency-indicator-wave"></span>
+                <span className="emergency-indicator-dot"></span>
               </span>
             )}
-            <h3 className="font-bold text-base flex items-center gap-2">
+            <h3 className="vcall-title">
               {call.call_type === 'emergency' ? (
-                <span className="text-red-500 font-extrabold uppercase tracking-widest text-sm bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                <span className="emergency-label">
                   Emergency Call
                 </span>
               ) : (
-                <span className="text-slate-400 font-normal">Video Consultation</span>
+                <span className="non-emergency-label">Video Consultation</span>
               )}
-              <span className="text-white">
+              <span className="peer-name">
                 {isCaller ? call.callee_name : call.caller_name}
               </span>
             </h3>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-white/70">
+          <div>
+            <span className="connection-state-badge">
               Connection: {connectionState}
             </span>
           </div>
         </div>
 
         {/* Video stream panels container */}
-        <div className="flex-1 relative w-full bg-slate-950">
+        <div className="vcall-body">
           {callStatus === 'ringing' && !isCaller ? (
             /* Callee incoming ringing panel */
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-24 h-24 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center border border-teal-500/30 mb-6 animate-pulse">
+            <div className="ringing-panel">
+              <div className="ringing-icon-wrapper callee">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-12 h-12"
+                  className="ringing-icon"
                 >
                   <path
                     strokeLinecap="round"
@@ -462,20 +462,20 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Incoming Video Call</h2>
-              <p className="text-slate-400 text-sm max-w-md mb-8">
+              <h2 className="ringing-title">Incoming Video Call</h2>
+              <p className="ringing-desc">
                 {call.caller_name} is initiating a video consultation. Click accept to join the session.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="ringing-actions">
                 <button
                   onClick={handleReject}
-                  className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-all font-semibold shadow-lg shadow-red-600/20 flex items-center gap-2"
+                  className="decline-btn"
                 >
                   Decline
                 </button>
                 <button
                   onClick={handleAccept}
-                  className="px-8 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 transition-all font-semibold shadow-lg shadow-emerald-600/20 flex items-center gap-2"
+                  className="accept-btn"
                 >
                   Accept & Join
                 </button>
@@ -483,15 +483,15 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
             </div>
           ) : callStatus === 'ringing' && isCaller ? (
             /* Caller ringing panel */
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-24 h-24 rounded-full bg-slate-800 text-teal-400 flex items-center justify-center border border-slate-700 mb-6 animate-bounce">
+            <div className="ringing-panel">
+              <div className="ringing-icon-wrapper caller">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="w-12 h-12 animate-pulse"
+                  className="ringing-icon pulse"
                 >
                   <path
                     strokeLinecap="round"
@@ -500,39 +500,39 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
                   />
                 </svg>
               </div>
-              <h2 className="text-2xl font-bold mb-2">Ringing...</h2>
-              <p className="text-slate-400 text-sm max-w-md mb-8">
+              <h2 className="ringing-title">Ringing...</h2>
+              <p className="ringing-desc">
                 Waiting for {call.callee_name} to answer. Please keep your browser open.
               </p>
               <button
                 onClick={handleHangup}
-                className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-all font-semibold shadow-lg shadow-red-600/20 flex items-center gap-2"
+                className="cancel-call-btn"
               >
                 Cancel Call
               </button>
             </div>
           ) : (
             /* Call in progress - video layout */
-            <div className="relative w-full h-full">
+            <div className="active-call-layout">
               {/* Remote Video Stream (Main window) */}
-              <div className="absolute inset-0 w-full h-full bg-slate-900">
+              <div className="remote-video-container">
                 {remoteStream ? (
                   <video
                     ref={remoteVideoRef}
                     autoPlay
                     playsInline
-                    className="w-full h-full object-cover"
+                    className="remote-video"
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center bg-slate-950 text-slate-500">
-                    <div className="p-4 rounded-full bg-slate-900 border border-slate-800 animate-pulse mb-4">
+                  <div className="remote-video-placeholder">
+                    <div className="placeholder-icon-wrapper">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={1.5}
                         stroke="currentColor"
-                        className="w-10 h-10"
+                        className="placeholder-icon"
                       >
                         <path
                           strokeLinecap="round"
@@ -541,15 +541,15 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
                         />
                       </svg>
                     </div>
-                    <span className="text-sm">Connecting {isCaller ? call.callee_name : call.caller_name}...</span>
+                    <span className="placeholder-text">Connecting {isCaller ? call.callee_name : call.caller_name}...</span>
                   </div>
                 )}
               </div>
 
               {/* Local Video Stream (Picture-in-Picture window) */}
-              <div className="absolute top-4 right-4 w-40 h-28 md:w-56 md:h-36 rounded-2xl border-2 border-white/20 bg-slate-950 shadow-2xl overflow-hidden z-20">
+              <div className="local-video-container">
                 {isCameraOff ? (
-                  <div className="w-full h-full flex items-center justify-center text-[10px] text-white/50 bg-slate-900 font-semibold">
+                  <div className="local-video-off-label">
                     Camera Off
                   </div>
                 ) : (
@@ -558,28 +558,26 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
                     autoPlay
                     playsInline
                     muted
-                    className="w-full h-full object-cover scale-x-[-1]"
+                    className="local-video"
                   />
                 )}
               </div>
 
               {/* Live Transcript Overlay Panel */}
               {showTranscript && (
-                <div className="absolute left-4 bottom-4 w-80 max-h-64 z-30 flex flex-col rounded-2xl bg-slate-950/90 border border-violet-500/30 shadow-xl overflow-hidden">
-                  <div className="px-3 py-2 bg-violet-600/20 border-b border-violet-500/30 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-violet-300 uppercase tracking-wider">📝 Live Transcript</span>
-                    {transcriptSaving && <span className="text-[10px] text-violet-400 animate-pulse">Saving...</span>}
+                <div className="live-transcript-panel">
+                  <div className="live-transcript-header">
+                    <span className="live-transcript-title">📝 Live Transcript</span>
+                    {transcriptSaving && <span className="live-transcript-saving">Saving...</span>}
                   </div>
-                  <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1.5 text-[11px]">
+                  <div className="live-transcript-body">
                     {liveTranscript.length === 0 ? (
-                      <p className="text-slate-500 italic text-center py-4">Transcript will appear here when connected...</p>
+                      <p className="live-transcript-empty">Transcript will appear here when connected...</p>
                     ) : (
                       liveTranscript.map((seg, idx) => (
-                        <div key={idx} className={`flex gap-1.5 ${
-                          seg.speaker === 'doctor' ? 'text-teal-300' : 'text-amber-300'
-                        }`}>
-                          <span className="font-bold capitalize shrink-0">[{seg.speaker}]</span>
-                          <span className="text-slate-200">{seg.text}</span>
+                        <div key={idx} className={`transcript-segment ${seg.speaker}`}>
+                          <span className="transcript-speaker">[{seg.speaker}]</span>
+                          <span className="transcript-text">{seg.text}</span>
                         </div>
                       ))
                     )}
@@ -592,29 +590,25 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
 
         {/* Bottom Control Bar */}
         {(callStatus === 'in_progress' || isCaller) && (
-          <div className="p-5 bg-slate-950/90 border-t border-slate-900 z-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="hidden sm:block text-slate-400 text-xs font-mono">
+          <div className="vcall-footer">
+            <div className="vcall-footer-status">
               Status: {connectionState}
             </div>
 
             {/* Core Controls */}
-            <div className="flex items-center gap-3">
+            <div className="control-buttons-wrapper">
               {/* Mute button */}
               <button
                 onClick={toggleMute}
-                className={`p-3.5 rounded-full border transition-all duration-200 ${
-                  isMuted
-                    ? 'bg-red-500/20 border-red-500/40 text-red-500 hover:bg-red-500/30'
-                    : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
-                }`}
+                className={`control-btn ${isMuted ? 'muted' : ''}`}
                 title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
               >
                 {isMuted ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.063.922-2.063 2.063v4.875c0 1.141.922 2.062 2.063 2.062h1.932l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM17.78 9.22a.75.75 0 1 0-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 0 0 1.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 1 0 1.06-1.06L20.56 12l1.72-1.72a.75.75 0 0 0-1.06-1.06l-1.72 1.72-1.72-1.72Z" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.063.922-2.063 2.063v4.875c0 1.141.922 2.062 2.063 2.062h1.932l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM18.57 6.66a.75.75 0 0 0-1.06 1.06 8.25 8.25 0 0 1 0 11.66.75.75 0 1 0 1.06 1.06 9.75 9.75 0 0 0 0-13.78ZM16.03 9.2a.75.75 0 0 0-1.06 1.06 4.75 4.75 0 0 1 0 6.66.75.75 0 0 0 1.06 1.06 6.25 6.25 0 0 0 0-8.78Z" />
                   </svg>
                 )}
@@ -623,19 +617,15 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
               {/* Camera toggle */}
               <button
                 onClick={toggleCamera}
-                className={`p-3.5 rounded-full border transition-all duration-200 ${
-                  isCameraOff
-                    ? 'bg-red-500/20 border-red-500/40 text-red-500 hover:bg-red-500/30'
-                    : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
-                }`}
+                className={`control-btn ${isCameraOff ? 'muted' : ''}`}
                 title={isCameraOff ? 'Turn on camera' : 'Turn off camera'}
               >
                 {isCameraOff ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3h-9ZM22.54 6.42a.75.75 0 0 0-.8.04l-4.5 3a.75.75 0 0 0-.34.62v3.84c0 .243.118.47.317.608l4.5 3.1a.75.75 0 0 0 1.203-.61v-9.94c0-.284-.16-.543-.44-.64a.75.75 0 0 0-.34-.02Z" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3h-9ZM22.54 6.42a.75.75 0 0 0-.8.04l-4.5 3a.75.75 0 0 0-.34.62v3.84c0 .243.118.47.317.608l4.5 3.1a.75.75 0 0 0 1.203-.61v-9.94c0-.284-.16-.543-.44-.64a.75.75 0 0 0-.34-.02Z" />
                   </svg>
                 )}
@@ -644,14 +634,10 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
               {/* Transcript toggle button */}
               <button
                 onClick={() => setShowTranscript((p) => !p)}
-                className={`p-3.5 rounded-full border transition-all duration-200 ${
-                  showTranscript
-                    ? 'bg-violet-500/20 border-violet-500/40 text-violet-400'
-                    : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700'
-                }`}
+                className={`control-btn ${showTranscript ? 'active-violet' : ''}`}
                 title="Toggle live transcript"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M4.125 3C3.089 3 2.25 3.84 2.25 4.875V18a3 3 0 0 0 3 3h15a3 3 0 0 1-3-3V4.875C17.25 3.839 16.41 3 15.375 3H4.125ZM12 9.75a.75.75 0 0 0 0 1.5h1.5a.75.75 0 0 0 0-1.5H12Zm-.75-2.25a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5H12a.75.75 0 0 1-.75-.75ZM6 12.75a.75.75 0 0 0 0 1.5h7.5a.75.75 0 0 0 0-1.5H6Zm-.75 3.75a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5H6a.75.75 0 0 1-.75-.75ZM6 6.75a.75.75 0 0 0-.75.75v3c0 .414.336.75.75.75h3a.75.75 0 0 0 .75-.75v-3A.75.75 0 0 0 9 6.75H6Z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -660,14 +646,10 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
               <button
                 onClick={toggleScreenShare}
                 disabled={callStatus !== 'in_progress'}
-                className={`p-3.5 rounded-full border transition-all duration-200 ${
-                  isScreenSharing
-                    ? 'bg-teal-500/20 border-teal-500/40 text-teal-400 hover:bg-teal-500/30'
-                    : 'bg-slate-800 border-slate-700 text-white hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed'
-                }`}
+                className={`control-btn ${isScreenSharing ? 'active-teal' : ''}`}
                 title={isScreenSharing ? 'Stop screen sharing' : 'Share screen'}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M2.25 5.25a3 3 0 0 1 3-3h13.5a3 3 0 0 1 3 3v10.5a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V5.25Zm3.75 8.25v-3H9v3H6Zm0 1.5v1.5a.75.75 0 0 0 .75.75h3v-2.25H6Zm5.25-1.5h1.5v-3h-1.5v3Zm0 1.5v2.25h1.5v-2.25h-1.5Zm3-1.5h2.25v-3h-2.25v3Zm0 1.5v2.25h2.25a.75.75 0 0 0 .75-.75v-1.5h-3ZM18 9v-1.5H6V9h12Z" clipRule="evenodd" />
                 </svg>
               </button>
@@ -675,22 +657,496 @@ export default function VideoCallModal({ call, currentUser, onClose, onCallEnded
               {/* End Call / Hangup */}
               <button
                 onClick={handleHangup}
-                className="px-6 py-3 rounded-full bg-red-600 hover:bg-red-700 transition-all font-semibold shadow-lg shadow-red-600/25 flex items-center gap-2"
+                className="hangup-btn"
                 title="Hang up call"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                   <path fillRule="evenodd" d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c1.358 2.735 3.57 4.947 6.306 6.307l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z" clipRule="evenodd" />
                 </svg>
                 <span>End Call</span>
               </button>
             </div>
 
-            <div className="sm:hidden text-slate-400 text-[10px] font-mono">
+            <div className="vcall-footer-status-mobile">
               Status: {connectionState}
             </div>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .vcall-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(2, 6, 23, 0.8);
+          backdrop-filter: blur(12px);
+          padding: 16px;
+          color: white;
+        }
+        .vcall-container {
+          position: relative;
+          width: 100%;
+          max-width: 896px;
+          height: 85vh;
+          display: flex;
+          flex-direction: column;
+          border-radius: 24px;
+          background: var(--bg-primary);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+          overflow: hidden;
+        }
+        .vcall-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px;
+          background: rgba(2, 6, 23, 0.5);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          z-index: 10;
+        }
+        .vcall-header-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .emergency-indicator {
+          display: flex;
+          height: 12px;
+          width: 12px;
+          position: relative;
+        }
+        .emergency-indicator-wave {
+          position: absolute;
+          display: inline-flex;
+          height: 100%;
+          width: 100%;
+          border-radius: 9999px;
+          background: #f87171;
+          opacity: 0.75;
+          animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .emergency-indicator-dot {
+          position: relative;
+          display: inline-flex;
+          border-radius: 9999px;
+          height: 12px;
+          width: 12px;
+          background: #ef4444;
+        }
+        .vcall-title {
+          font-weight: 700;
+          font-size: var(--font-base);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .emergency-label {
+          color: #ef4444;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          font-size: var(--font-xs);
+          background: rgba(239, 68, 68, 0.1);
+          padding: 2px 8px;
+          border-radius: var(--radius-sm);
+          border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .non-emergency-label {
+          color: var(--text-muted);
+          font-weight: 400;
+        }
+        .peer-name {
+          color: white;
+        }
+        .connection-state-badge {
+          font-size: var(--font-xs);
+          padding: 4px 10px;
+          border-radius: 9999px;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: rgba(255, 255, 255, 0.7);
+        }
+        .vcall-body {
+          flex: 1;
+          position: relative;
+          width: 100%;
+          background: #020617;
+        }
+        .ringing-panel {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          text-align: center;
+        }
+        .ringing-icon-wrapper {
+          width: 96px;
+          height: 96px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 24px;
+        }
+        .ringing-icon-wrapper.callee {
+          background: rgba(13, 148, 136, 0.2);
+          color: #2dd4bf;
+          border: 1px solid rgba(13, 148, 136, 0.3);
+          animation: pulse 2s infinite;
+        }
+        .ringing-icon-wrapper.caller {
+          background: rgba(30, 41, 59, 0.8);
+          color: #2dd4bf;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          animation: bounce 1s infinite;
+        }
+        .ringing-icon {
+          width: 48px;
+          height: 48px;
+        }
+        .ringing-icon.pulse {
+          animation: pulse 2s infinite;
+        }
+        .ringing-title {
+          font-size: var(--font-2xl);
+          font-weight: 700;
+          margin-bottom: 8px;
+        }
+        .ringing-desc {
+          color: var(--text-muted);
+          font-size: var(--font-sm);
+          max-width: 448px;
+          margin-bottom: 32px;
+        }
+        .ringing-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .decline-btn {
+          padding: 12px 24px;
+          border-radius: 9999px;
+          background: #dc2626;
+          color: white;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.2);
+        }
+        .decline-btn:hover {
+          background: #b91c1c;
+        }
+        .accept-btn {
+          padding: 12px 32px;
+          border-radius: 9999px;
+          background: #059669;
+          color: white;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.2);
+        }
+        .accept-btn:hover {
+          background: #047857;
+        }
+        .cancel-call-btn {
+          padding: 12px 24px;
+          border-radius: 9999px;
+          background: #dc2626;
+          color: white;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.2);
+        }
+        .cancel-call-btn:hover {
+          background: #b91c1c;
+        }
+        .active-call-layout {
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
+        .remote-video-container {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          background: #0f172a;
+        }
+        .remote-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .remote-video-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          background: #020617;
+          color: var(--text-muted);
+        }
+        .placeholder-icon-wrapper {
+          padding: 16px;
+          border-radius: 50%;
+          background: #0f172a;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          animation: pulse 2s infinite;
+          margin-bottom: 16px;
+        }
+        .placeholder-icon {
+          width: 40px;
+          height: 40px;
+        }
+        .placeholder-text {
+          font-size: var(--font-sm);
+        }
+        .local-video-container {
+          position: absolute;
+          top: 16px;
+          right: 16px;
+          width: 160px;
+          height: 112px;
+          border-radius: 16px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          background: #020617;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          overflow: hidden;
+          z-index: 20;
+        }
+        @media (min-width: 768px) {
+          .local-video-container {
+            width: 224px;
+            height: 144px;
+          }
+        }
+        .local-video-off-label {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          color: rgba(255, 255, 255, 0.5);
+          background: #0f172a;
+          font-weight: 600;
+        }
+        .local-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transform: scaleX(-1);
+        }
+        .live-transcript-panel {
+          position: absolute;
+          left: 16px;
+          bottom: 16px;
+          width: 320px;
+          max-height: 256px;
+          z-index: 30;
+          display: flex;
+          flex-direction: column;
+          border-radius: 16px;
+          background: rgba(2, 6, 23, 0.9);
+          border: 1px solid rgba(139, 92, 246, 0.3);
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+          overflow: hidden;
+        }
+        .live-transcript-header {
+          padding: 8px 12px;
+          background: rgba(139, 92, 246, 0.2);
+          border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .live-transcript-title {
+          font-size: 11px;
+          font-weight: 700;
+          color: #c084fc;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+        .live-transcript-saving {
+          font-size: 10px;
+          color: #a78bfa;
+          animation: pulse 2s infinite;
+        }
+        .live-transcript-body {
+          flex: 1;
+          overflow-y: auto;
+          padding: 8px;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          font-size: 11px;
+        }
+        .live-transcript-empty {
+          color: var(--text-muted);
+          font-style: italic;
+          text-align: center;
+          padding: 16px 0;
+        }
+        .transcript-segment {
+          display: flex;
+          gap: 6px;
+        }
+        .transcript-segment.doctor {
+          color: #67e8f9;
+        }
+        .transcript-segment.patient {
+          color: #fde047;
+        }
+        .transcript-speaker {
+          font-weight: 700;
+          text-transform: capitalize;
+          flex-shrink: 0;
+        }
+        .transcript-text {
+          color: #e2e8f0;
+        }
+        .vcall-footer {
+          padding: 20px;
+          background: rgba(2, 6, 23, 0.9);
+          border-top: 1px solid #0f172a;
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        @media (min-width: 640px) {
+          .vcall-footer {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+          }
+        }
+        .vcall-footer-status {
+          display: none;
+          color: var(--text-muted);
+          font-size: var(--font-xs);
+          font-family: monospace;
+        }
+        @media (min-width: 640px) {
+          .vcall-footer-status {
+            display: block;
+          }
+        }
+        .vcall-footer-status-mobile {
+          color: var(--text-muted);
+          font-size: 10px;
+          font-family: monospace;
+        }
+        @media (min-width: 640px) {
+          .vcall-footer-status-mobile {
+            display: none;
+          }
+        }
+        .control-buttons-wrapper {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .control-btn {
+          padding: 14px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          background: #1e293b;
+          color: white;
+          transition: all 0.2s ease;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .control-btn:hover {
+          background: #334155;
+        }
+        .control-btn.muted {
+          background: rgba(239, 68, 68, 0.2);
+          border-color: rgba(239, 68, 68, 0.4);
+          color: #f87171;
+        }
+        .control-btn.muted:hover {
+          background: rgba(239, 68, 68, 0.3);
+        }
+        .control-btn.active-violet {
+          background: rgba(139, 92, 246, 0.2);
+          border-color: rgba(139, 92, 246, 0.4);
+          color: #c084fc;
+        }
+        .control-btn.active-teal {
+          background: rgba(13, 148, 136, 0.2);
+          border-color: rgba(13, 148, 136, 0.4);
+          color: #2dd4bf;
+        }
+        .control-btn.active-teal:hover {
+          background: rgba(13, 148, 136, 0.3);
+        }
+        .control-btn:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+        .control-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+        .hangup-btn {
+          padding: 12px 24px;
+          border-radius: 9999px;
+          background: #dc2626;
+          color: white;
+          font-weight: 600;
+          border: none;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          box-shadow: 0 10px 15px -3px rgba(220, 38, 38, 0.25);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .hangup-btn:hover {
+          background: #b91c1c;
+        }
+        .hangup-btn svg {
+          width: 20px;
+          height: 20px;
+        }
+        @keyframes ping {
+          75%, 100% {
+            transform: scale(2);
+            opacity: 0;
+          }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: .5; }
+        }
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(-25%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+          }
+          50% {
+            transform: translateY(0);
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+          }
+        }
+      `}</style>
     </div>
   );
 }
