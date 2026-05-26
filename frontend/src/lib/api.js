@@ -231,6 +231,15 @@ export async function getPatientBrief(patientId) {
   return fetchAPI(`/doctors/patient/${patientId}/brief`);
 }
 
+export async function getPatientPastConsultations(patientId) {
+  return fetchAPI(`/doctors/patient/${patientId}/consultations`);
+}
+
+export async function getPatientGuardianNotes(patientId) {
+  return fetchAPI(`/doctors/patient/${patientId}/guardian-notes`);
+}
+
+
 export async function getDoctorProfile() {
   return fetchAPI('/doctors/profile');
 }
@@ -536,10 +545,16 @@ export async function getPatientSessionHistory() {
 
 export async function getDoctorPatientAnalytics(patientId) {
   // Aggregate multiple analytics endpoints for patient overview
-  const [moodTrend, screeningHistory] = await Promise.allSettled([
+  const [moodTrend, screeningHistory, consultations, notes] = await Promise.allSettled([
     getDoctorPatientMoodTrend(patientId, 30),
     getDoctorPatientScreeningHistory(patientId),
+    getPatientPastConsultations(patientId),
+    getPatientGuardianNotes(patientId),
   ]);
+
+  const consList = consultations.status === 'fulfilled' ? consultations.value : [];
+  const notesList = notes.status === 'fulfilled' ? notes.value : [];
+  const completedCount = consList.filter(c => c.status === 'completed' || c.status === 'conducted').length;
 
   return {
     mood_trend: moodTrend.status === 'fulfilled' ? (moodTrend.value.trends || moodTrend.value) : [],
@@ -547,9 +562,9 @@ export async function getDoctorPatientAnalytics(patientId) {
     current_streak: moodTrend.status === 'fulfilled' ? (moodTrend.value.current_streak || 0) : 0,
     avg_mood_score: moodTrend.status === 'fulfilled' ? (moodTrend.value.avg_score || null) : null,
     total_mood_entries: moodTrend.status === 'fulfilled' ? (moodTrend.value.total_entries || 0) : 0,
-    session_stats: { completed: 0 },
-    questionnaire_count: 0,
-    guardian_notes_count: 0,
+    session_stats: { completed: completedCount },
+    questionnaire_count: screeningHistory.status === 'fulfilled' ? (screeningHistory.value.screenings || screeningHistory.value || []).length : 0,
+    guardian_notes_count: notesList.length,
   };
 }
 

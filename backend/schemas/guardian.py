@@ -40,3 +40,17 @@ class GuardianProfileUpdate(BaseModel):
     latitude: Optional[float] = None
     longitude: Optional[float] = None
 
+
+class GuardianNoteResponse(BaseModel):
+    """Observational note response for doctors."""
+    id: str
+    patient_id: str
+    guardian_id: str
+    guardian_name: Optional[str] = None
+    note_text: str
+    note_type: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+

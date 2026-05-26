@@ -24,6 +24,10 @@ from schemas.consultation import (
 )
 from middleware.auth_middleware import get_current_user, require_doctor
 from services.screening_service import run_screening
+from models.audit import GuardianNote
+from models.guardian import GuardianProfile
+from models.user import User
+from schemas.guardian import GuardianNoteResponse
 
 router = APIRouter(prefix="/api/doctors", tags=["Doctors"])
 
@@ -86,7 +90,26 @@ async def get_patient_queue(
         select(PatientProfile).where(PatientProfile.id.in_(patient_ids))
     )
     patients = result.scalars().all()
-    return [PatientProfileResponse.model_validate(p) for p in patients]
+    
+    patients_list = []
+    for p in patients:
+        # Check consultations for this doctor and patient
+        c_res = await db.execute(
+            select(Consultation)
+            .where(Consultation.patient_id == p.id, Consultation.doctor_id == doctor.id)
+        )
+        cons = c_res.scalars().all()
+        
+        has_completed = any(c.status == "completed" for c in cons)
+        has_active = any(c.status in ("scheduled", "in_progress") for c in cons)
+        
+        is_treated = has_completed and not has_active
+        
+        resp = PatientProfileResponse.model_validate(p)
+        resp.is_treated = is_treated
+        patients_list.append(resp)
+        
+    return patients_list
 
 
 @router.get("/patient/{patient_id}/brief")
@@ -130,6 +153,82 @@ async def get_patient_brief(
         "patient": PatientProfileResponse.model_validate(patient),
         "screening": screening,
     }
+
+
+@router.get("/patient/{patient_id}/consultations", response_model=list[ConsultationResponse])
+async def get_patient_past_consultations(
+    patient_id: str,
+    current_user: dict = Depends(require_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get all past consultations/sessions for a specific patient.
+    """
+    # Verify patient exists
+    p_res = await db.execute(select(PatientProfile).where(PatientProfile.id == patient_id))
+    patient = p_res.scalar_one_or_none()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Patient not found",
+        )
+
+    result = await db.execute(
+        select(Consultation)
+        .where(Consultation.patient_id == patient_id)
+        .order_by(Consultation.scheduled_at.desc())
+    )
+    consultations = result.scalars().all()
+    return [await _to_consultation_response(c, db) for c in consultations]
+
+
+@router.get("/patient/{patient_id}/guardian-notes", response_model=list[GuardianNoteResponse])
+async def get_patient_guardian_notes(
+    patient_id: str,
+    current_user: dict = Depends(require_doctor),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Get all observational notes recorded by guardians for a specific patient.
+    """
+    # Verify patient exists
+    p_res = await db.execute(select(PatientProfile).where(PatientProfile.id == patient_id))
+    patient = p_res.scalar_one_or_none()
+    if not patient:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Patient not found",
+        )
+
+    result = await db.execute(
+        select(GuardianNote)
+        .where(GuardianNote.patient_id == patient_id)
+        .order_by(GuardianNote.created_at.desc())
+    )
+    notes = result.scalars().all()
+
+    response_list = []
+    for note in notes:
+        # Find guardian name
+        guardian_name = "Unknown Guardian"
+        g_res = await db.execute(select(GuardianProfile).where(GuardianProfile.user_id == note.guardian_id))
+        g = g_res.scalar_one_or_none()
+        if g:
+            guardian_name = g.full_name
+        else:
+            u_res = await db.execute(select(User).where(User.id == note.guardian_id))
+            u = u_res.scalar_one_or_none()
+            if u:
+                guardian_name = f"ASHA/Guardian ({u.phone})"
+        
+        resp = GuardianNoteResponse.model_validate(note)
+        resp.guardian_name = guardian_name
+        response_list.append(resp)
+
+    return response_list
+
+
+
 
 
 @router.post("/sessions", response_model=ConsultationResponse)

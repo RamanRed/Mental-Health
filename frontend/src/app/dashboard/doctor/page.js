@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDoctorProfile, getPatientQueue, getPatientBrief, createSession, listDoctorSessions, updateDoctorProfile, initiateVideoCall, getDoctorPendingAppointments, acceptAppointment, rejectAppointment, listClinicalForms, sendFollowRequest, getDoctorFollowRequests, getDoctorPatientAnalytics } from '@/lib/api';
+import { getDoctorProfile, getPatientQueue, getPatientBrief, createSession, listDoctorSessions, updateDoctorProfile, initiateVideoCall, getDoctorPendingAppointments, acceptAppointment, rejectAppointment, listClinicalForms, sendFollowRequest, getDoctorFollowRequests, getDoctorPatientAnalytics, getPatientPastConsultations, getPatientGuardianNotes } from '@/lib/api';
 import RiskBadge from '@/components/RiskBadge';
 import PatientCard from '@/components/PatientCard';
 import LocationBadge from '@/components/LocationBadge';
@@ -62,6 +62,14 @@ export default function DoctorDashboard() {
 
   // Analytics panel
   const [patientAnalytics, setPatientAnalytics] = useState(null);
+
+  // Past consultations and guardian notes
+  const [patientConsultations, setPatientConsultations] = useState([]);
+  const [patientGuardianNotes, setPatientGuardianNotes] = useState([]);
+  const [activeHistoryTab, setActiveHistoryTab] = useState('consultations');
+  const [activeQueueTab, setActiveQueueTab] = useState('active');
+
+
 
   const loadDashboardData = async () => {
     try {
@@ -183,6 +191,8 @@ export default function DoctorDashboard() {
     setBriefLoading(true);
     setPatientBrief(null);
     setPatientAnalytics(null);
+    setPatientConsultations([]);
+    setPatientGuardianNotes([]);
     setSchedMsg('');
     setSchedError('');
 
@@ -198,6 +208,20 @@ export default function DoctorDashboard() {
       setPatientAnalytics(analytics);
     } catch (e) {
       console.warn('Analytics unavailable:', e);
+    }
+
+    try {
+      const consultations = await getPatientPastConsultations(patient.id);
+      setPatientConsultations(consultations);
+    } catch (e) {
+      console.error('Failed to load past consultations:', e);
+    }
+
+    try {
+      const notes = await getPatientGuardianNotes(patient.id);
+      setPatientGuardianNotes(notes);
+    } catch (e) {
+      console.error('Failed to load guardian notes:', e);
     } finally {
       setBriefLoading(false);
     }
@@ -282,6 +306,9 @@ export default function DoctorDashboard() {
     );
   }
 
+  const activePatients = patients.filter((p) => !p.is_treated);
+  const treatedPatients = patients.filter((p) => p.is_treated);
+
   return (
     <div className="doctor-dashboard flex-col">
       {/* Geolocation Badge at the very top */}
@@ -301,16 +328,31 @@ export default function DoctorDashboard() {
       <div className="dashboard-grid-layout">
         {/* Left Column: Patient Queue */}
         <div className="patient-queue-section flex-col">
-          <h3>Your Patient Queue ({patients.length})</h3>
+          <div className="queue-tabs flex-row">
+            <button 
+              type="button"
+              onClick={() => setActiveQueueTab('active')} 
+              className={`queue-tab-btn ${activeQueueTab === 'active' ? 'active' : ''}`}
+            >
+              Active Queue ({activePatients.length})
+            </button>
+            <button 
+              type="button"
+              onClick={() => setActiveQueueTab('treated')} 
+              className={`queue-tab-btn ${activeQueueTab === 'treated' ? 'active' : ''}`}
+            >
+              Treated Patients ({treatedPatients.length})
+            </button>
+          </div>
           
-          {patients.length === 0 ? (
+          {(activeQueueTab === 'active' ? activePatients.length : treatedPatients.length) === 0 ? (
             <div className="no-patients glass-card flex-col flex-center">
               <span className="no-patients-icon">🧑‍🤝‍🧑</span>
-              <p>No patients are currently assigned to you.</p>
+              <p>No {activeQueueTab} patients found.</p>
             </div>
           ) : (
             <div className="patients-grid flex-col">
-              {patients.map((patient) => (
+              {(activeQueueTab === 'active' ? activePatients : treatedPatients).map((patient) => (
                 <div
                   key={patient.id}
                   className={`patient-card-wrapper ${selectedPatient?.id === patient.id ? 'active-selection' : ''}`}
@@ -442,6 +484,120 @@ export default function DoctorDashboard() {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Patient History & Logs Card */}
+              <div className="history-logs-card glass-card-static flex-col animate-fade-in">
+                <div className="history-tabs flex-row">
+                  <button 
+                    type="button"
+                    onClick={() => setActiveHistoryTab('consultations')} 
+                    className={`history-tab-btn ${activeHistoryTab === 'consultations' ? 'active' : ''}`}
+                  >
+                    Past Consultations ({patientConsultations.length})
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => setActiveHistoryTab('guardian_notes')} 
+                    className={`history-tab-btn ${activeHistoryTab === 'guardian_notes' ? 'active' : ''}`}
+                  >
+                    Guardian Logs ({patientGuardianNotes.length})
+                  </button>
+                </div>
+
+                <div className="history-tab-content">
+                  {activeHistoryTab === 'consultations' ? (
+                    <div className="history-list flex-col">
+                      {patientConsultations.length === 0 ? (
+                        <p className="history-empty">No past consultations recorded for this patient.</p>
+                      ) : (
+                        patientConsultations.map((c) => {
+                          const cDate = new Date(c.scheduled_at).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric'
+                          });
+
+                          let parsedSummary = null;
+                          try {
+                            parsedSummary = JSON.parse(c.consultation_summary);
+                          } catch (e) {
+                            parsedSummary = { summary: c.consultation_summary };
+                          }
+
+                          return (
+                            <div key={c.id} className="history-item-card">
+                              <div className="history-item-header flex-between">
+                                <strong className="history-item-title">Session #{c.session_number} ({c.session_type?.replace('_', ' ')})</strong>
+                                <span className="history-item-date">{cDate}</span>
+                              </div>
+                              <div className="history-item-meta font-xs text-secondary" style={{ marginTop: '2px', fontSize: '11px' }}>
+                                Format: <strong style={{ color: 'var(--text-primary)' }}>{c.format?.replace('_', ' ')}</strong> | Doctor: <strong style={{ color: 'var(--text-primary)' }}>{c.doctor_name || 'Dr. ' + profile.full_name}</strong>
+                              </div>
+                              {parsedSummary && typeof parsedSummary === 'object' ? (
+                                <div className="history-item-body">
+                                  {parsedSummary.summary && (
+                                    <div className="history-item-summary-block">
+                                      <span className="summary-block-label">Clinical Summary</span>
+                                      <p className="summary-block-text">"{parsedSummary.summary}"</p>
+                                    </div>
+                                  )}
+                                  {parsedSummary.verdict && (
+                                    <div className="history-item-summary-block">
+                                      <span className="summary-block-label">Doctor Verdict</span>
+                                      <p className="summary-block-text summary-verdict-text">"{parsedSummary.verdict}"</p>
+                                    </div>
+                                  )}
+                                  {parsedSummary.notes && (
+                                    <div className="history-item-summary-block">
+                                      <span className="summary-block-label">Caregiver Instructions</span>
+                                      <p className="summary-block-text" style={{ fontStyle: 'italic' }}>"{parsedSummary.notes}"</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="summary-block-text font-sm" style={{ fontStyle: 'italic', marginTop: '6px' }}>
+                                  "{c.consultation_summary || 'No summary recorded.'}"
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  ) : (
+                    <div className="history-list flex-col">
+                      {patientGuardianNotes.length === 0 ? (
+                        <p className="history-empty">No guardian observation logs recorded for this patient.</p>
+                      ) : (
+                        patientGuardianNotes.map((note) => {
+                          const nDate = new Date(note.created_at).toLocaleDateString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          });
+
+                          return (
+                            <div key={note.id} className="history-item-card note-card">
+                              <div className="history-item-header flex-between">
+                                <span className={`note-type-badge ${note.note_type}`}>
+                                  {note.note_type}
+                                </span>
+                                <span className="history-item-date">{nDate}</span>
+                              </div>
+                              <p className="note-text font-sm">"{note.note_text}"</p>
+                              <div className="note-attribution font-xs text-muted" style={{ marginTop: '4px', fontSize: '10px' }}>
+                                Logged by: <strong style={{ color: 'var(--text-secondary)' }}>{note.guardian_name || 'ASHA / Guardian'}</strong>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Schedule Form Card */}
@@ -834,6 +990,39 @@ export default function DoctorDashboard() {
           gap: var(--space-md);
         }
 
+        .queue-tabs {
+          display: flex;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: var(--space-xs);
+        }
+
+        .queue-tab-btn {
+          flex: 1;
+          padding: var(--space-sm) var(--space-xs);
+          font-size: 11px;
+          font-weight: 600;
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+          text-align: center;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          outline: none;
+        }
+
+        .queue-tab-btn:hover {
+          color: var(--text-primary);
+        }
+
+        .queue-tab-btn.active {
+          border-bottom-color: var(--color-doctor-light);
+          color: var(--color-doctor-light);
+          font-weight: 700;
+        }
+
         .patient-queue-section h3 {
           font-size: var(--font-lg);
           font-weight: 600;
@@ -856,6 +1045,164 @@ export default function DoctorDashboard() {
 
         .middle-column {
           gap: var(--space-xl);
+        }
+
+        .history-logs-card {
+          gap: var(--space-md);
+          padding: var(--space-xl);
+        }
+
+        .history-tabs {
+          display: flex;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          margin-bottom: var(--space-xs);
+        }
+
+        .history-tab-btn {
+          flex: 1;
+          padding: var(--space-sm) var(--space-md);
+          font-size: var(--font-sm);
+          font-weight: 600;
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          border-bottom: 2px solid transparent;
+          text-align: center;
+          outline: none;
+        }
+
+        .history-tab-btn:hover {
+          color: var(--text-primary);
+        }
+
+        .history-tab-btn.active {
+          border-bottom-color: var(--color-doctor-light);
+          color: var(--color-doctor-light);
+          font-weight: 700;
+        }
+
+        .history-tab-content {
+          margin-top: var(--space-xs);
+        }
+
+        .history-list {
+          gap: var(--space-md);
+          max-height: 40vh;
+          overflow-y: auto;
+          padding-right: var(--space-xs);
+          display: flex;
+          flex-direction: column;
+        }
+
+        .history-empty {
+          font-size: var(--font-xs);
+          color: var(--text-muted);
+          font-style: italic;
+          padding: var(--space-lg) 0;
+          text-align: center;
+        }
+
+        .history-item-card {
+          padding: var(--space-md);
+          border-radius: var(--radius-md);
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-xs);
+          text-align: left;
+        }
+
+        .history-item-card.note-card {
+          border-left: 3px solid #f59e0b;
+        }
+
+        .history-item-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: var(--space-sm);
+        }
+
+        .history-item-title {
+          font-size: var(--font-sm);
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .history-item-date {
+          font-size: 10px;
+          color: var(--text-muted);
+          white-space: nowrap;
+        }
+
+        .history-item-body {
+          margin-top: var(--space-xs);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-xs);
+        }
+
+        .history-item-summary-block {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .summary-block-label {
+          font-size: 10px;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          font-weight: 600;
+        }
+
+        .summary-block-text {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+          margin: 0;
+        }
+
+        .summary-verdict-text {
+          color: #2dd4bf;
+          font-weight: 600;
+        }
+
+        .note-type-badge {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          padding: 2px 8px;
+          border-radius: var(--radius-sm);
+          width: fit-content;
+        }
+
+        .note-type-badge.observation {
+          background: rgba(59, 130, 246, 0.1);
+          color: #60a5fa;
+        }
+
+        .note-type-badge.check_in {
+          background: rgba(16, 185, 129, 0.1);
+          color: #34d399;
+        }
+
+        .note-type-badge.concern {
+          background: rgba(239, 68, 68, 0.1);
+          color: #f87171;
+        }
+
+        .note-text {
+          color: var(--text-secondary);
+          margin: 0;
+          font-style: italic;
+        }
+
+        .note-attribution {
+          color: var(--text-muted);
+          font-size: 10px;
+          text-align: right;
         }
 
         .brief-card {

@@ -38,6 +38,7 @@ class PatientProfileResponse(BaseModel):
     registered_by: Optional[str] = None
     risk_level: Optional[str] = "low"
     distance_km: Optional[float] = None
+    is_treated: Optional[bool] = False
     created_at: Optional[datetime] = None
 
     updated_at: Optional[datetime] = None
