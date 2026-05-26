@@ -59,6 +59,7 @@ export default function DoctorDashboard() {
   const [followUrgency, setFollowUrgency] = useState('routine');
   const [followDate, setFollowDate] = useState('');
   const [sendingFollow, setSendingFollow] = useState(false);
+  const [followNotifyGuardian, setFollowNotifyGuardian] = useState(false);
 
   // Analytics panel
   const [patientAnalytics, setPatientAnalytics] = useState(null);
@@ -237,10 +238,12 @@ export default function DoctorDashboard() {
         message: followMessage,
         urgency: followUrgency,
         suggested_date: followDate ? new Date(followDate).toISOString() : null,
+        notify_guardian: followNotifyGuardian,
       });
       setShowFollowModal(false);
       setFollowMessage('');
       setFollowDate('');
+      setFollowNotifyGuardian(false);
       const updated = await getDoctorFollowRequests();
       setMyFollowRequests(updated);
     } catch (err) {
@@ -818,6 +821,19 @@ export default function DoctorDashboard() {
               <textarea value={followMessage} onChange={(e) => setFollowMessage(e.target.value)}
                 rows={3} placeholder="Describe reason for follow-up, instructions or concerns..."
                 className="modal-field-textarea" />
+            </div>
+
+            <div className="modal-field-group flex-row" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
+              <input 
+                type="checkbox" 
+                id="notify-guardian-check"
+                checked={followNotifyGuardian} 
+                onChange={(e) => setFollowNotifyGuardian(e.target.checked)} 
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="notify-guardian-check" className="modal-field-label" style={{ margin: 0, cursor: 'pointer', fontSize: '12px', textTransform: 'none', letterSpacing: 'normal' }}>
+                Also notify linked guardian(s) / regional ASHA worker of this follow-up
+              </label>
             </div>
 
             <button type="submit" disabled={sendingFollow}

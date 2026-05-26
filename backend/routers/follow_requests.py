@@ -28,6 +28,7 @@ class FollowRequestCreate(BaseModel):
     consultation_id: Optional[str] = None
     message: Optional[str] = None
     due_date: Optional[datetime] = None
+    notify_guardian: Optional[bool] = False
 
 
 class FollowRequestRespond(BaseModel):
@@ -119,6 +120,39 @@ async def create_follow_request(
         )
     except Exception as e:
         print(f"Failed to send follow-up notification: {e}")
+
+    # Notify guardians if requested by doctor
+    if payload.notify_guardian:
+        if patient.guardian1_id:
+            try:
+                await create_notification(
+                    user_id=patient.guardian1_id,
+                    title=f"Patient Follow-Up Alert: {patient.full_name}",
+                    content=(
+                        f"Dr. {doctor.full_name} has sent a follow-up check-in request to your linked patient, {patient.full_name}. "
+                        + (f'Instructions: "{payload.message}"' if payload.message else "")
+                    ).strip(),
+                    notification_type="guardian_follow_alert",
+                    db=db,
+                )
+            except Exception as e:
+                print(f"Failed to notify Guardian 1: {e}")
+
+        if patient.guardian2_id:
+            try:
+                await create_notification(
+                    user_id=patient.guardian2_id,
+                    title=f"ASHA Worker Follow-Up Alert: {patient.full_name}",
+                    content=(
+                        f"Dr. {doctor.full_name} has sent a follow-up request to {patient.full_name}. "
+                        f"Please coordinate check-in. "
+                        + (f'Instructions: "{payload.message}"' if payload.message else "")
+                    ).strip(),
+                    notification_type="asha_follow_alert",
+                    db=db,
+                )
+            except Exception as e:
+                print(f"Failed to notify Guardian 2 (ASHA): {e}")
 
     await db.commit()
     await db.refresh(follow_req)
