@@ -1,5 +1,11 @@
 fastapi==0.115.0
 uvicorn[standard]==0.32.0
+flask==3.0.3
+twilio==9.3.6
+groq>=0.9.0
+transformers>=4.44.0
+torch>=2.3.0
+sentencepiece>=0.2.0
 sqlalchemy==2.0.35
 aiosqlite==0.20.0
 python-jose[cryptography]==3.3.0
