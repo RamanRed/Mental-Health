@@ -24,6 +24,7 @@ export default function Sidebar() {
           { label: 'Mood Journal', path: '/dashboard/patient/mood', icon: '📝' },
           { label: 'Questionnaire', path: '/dashboard/patient/questionnaire', icon: '📋' },
           { label: 'Consultations', path: '/dashboard/patient/consultations', icon: '🤝' },
+          { label: 'Saathi Chat', path: '/dashboard/patient/chat', icon: '🤖' },
           { label: 'Settings', path: '/settings', icon: '⚙️' },
         ];
       case 'guardian':

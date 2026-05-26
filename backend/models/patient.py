@@ -40,6 +40,10 @@ class PatientProfile(Base):
     literacy_level = Column(String(20), nullable=True)  # literate/semi_literate/illiterate
     # Consent management
     consent_toggles = Column(JSON, default=dict, nullable=False)
+    # Onboarding details for Saathi chatbot
+    reasons = Column(JSON, nullable=True)
+    therapist_history = Column(String(500), nullable=True)
+    open_text = Column(String(1000), nullable=True)
     # Attribution: who registered this patient
     registered_by = Column(String(36), ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, server_default=func.now(), nullable=False)

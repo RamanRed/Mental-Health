@@ -26,6 +26,12 @@ class PatientProfileResponse(BaseModel):
     household_members: Optional[int] = None
     guardian1_id: Optional[str] = None
     guardian2_id: Optional[str] = None
+    guardian1_name: Optional[str] = None
+    guardian1_phone: Optional[str] = None
+    guardian1_type: Optional[str] = None
+    guardian2_name: Optional[str] = None
+    guardian2_phone: Optional[str] = None
+    guardian2_type: Optional[str] = None
     language_preference: str = "en"
     literacy_level: Optional[str] = None
     consent_toggles: Dict[str, Any] = Field(default_factory=dict)

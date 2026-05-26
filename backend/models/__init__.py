@@ -18,6 +18,7 @@ from models.audit import ConsentAuditLog, GuardianNote
 from models.notification import Notification
 from models.transcript import CallTranscript
 from models.follow_request import DoctorFollowRequest
+from models.chat import ChatMessage
 
 __all__ = [
     "User",
@@ -37,4 +38,5 @@ __all__ = [
     "Notification",
     "CallTranscript",
     "DoctorFollowRequest",
+    "ChatMessage",
 ]

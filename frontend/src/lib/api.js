@@ -561,5 +561,31 @@ export async function getHealth() {
   return fetchAPI('/health');
 }
 
+// ============================================================
+// SAATHI CHATBOT
+// ============================================================
+
+export async function getChatProfile() {
+  return fetchAPI('/chat/profile');
+}
+
+export async function updateChatProfile(data) {
+  return fetchAPI('/chat/profile', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getChatHistory() {
+  return fetchAPI('/chat/history');
+}
+
+export async function sendChatMessage(content) {
+  return fetchAPI('/chat/message', {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  });
+}
+
 // Alias used by doctor dashboard
 export { getSentFollowRequests as getDoctorFollowRequests };

@@ -18,7 +18,7 @@ from sqlalchemy import select
 import models  # noqa: F401
 
 from routers import auth, patients, mood, guardians, doctors, questionnaire, ai_service, notifications, appointments, video_call
-from routers import transcript, follow_requests, analytics
+from routers import transcript, follow_requests, analytics, chat
 
 
 async def seed_clinical_forms():
@@ -219,6 +219,7 @@ app.include_router(video_call.router)
 app.include_router(transcript.router)
 app.include_router(follow_requests.router)
 app.include_router(analytics.router)
+app.include_router(chat.router)
 
 
 @app.get("/api/health", tags=["Health"])

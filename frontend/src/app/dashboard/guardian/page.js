@@ -359,6 +359,58 @@ export default function GuardianDashboard() {
               </div>
             </div>
 
+            {/* Contact Details */}
+            <div className="contact-info-section">
+              <h4 className="contact-info-title">Contact Information</h4>
+              <div className="contact-grid-modal">
+                <div className="contact-modal-card patient-card">
+                  <div className="contact-modal-card-header">
+                    <span className="contact-modal-card-label">Patient</span>
+                  </div>
+                  <strong className="contact-modal-card-value">
+                    📞 {viewingPatient.contact_number || viewingPatient.phone || 'No phone number provided'}
+                  </strong>
+                </div>
+
+                {viewingPatient.guardian1_name && (
+                  <div className="contact-modal-card">
+                    <div className="contact-modal-card-header">
+                      <span className="contact-modal-card-relation">
+                        {viewingPatient.guardian1_type?.replace('_', ' ') || 'Primary Guardian'}
+                      </span>
+                    </div>
+                    <strong className="contact-modal-card-name">{viewingPatient.guardian1_name}</strong>
+                    {viewingPatient.guardian1_phone && (
+                      <span className="contact-modal-card-phone">📞 {viewingPatient.guardian1_phone}</span>
+                    )}
+                  </div>
+                )}
+
+                {viewingPatient.guardian2_name && (
+                  <div className="contact-modal-card">
+                    <div className="contact-modal-card-header">
+                      <span className="contact-modal-card-relation">
+                        {viewingPatient.guardian2_type?.replace('_', ' ') || 'Secondary Guardian'}
+                      </span>
+                    </div>
+                    <strong className="contact-modal-card-name">{viewingPatient.guardian2_name}</strong>
+                    {viewingPatient.guardian2_phone && (
+                      <span className="contact-modal-card-phone">📞 {viewingPatient.guardian2_phone}</span>
+                    )}
+                  </div>
+                )}
+
+                {!viewingPatient.guardian1_name && !viewingPatient.guardian2_name && (
+                  <div className="contact-modal-card no-guardian">
+                    <div className="contact-modal-card-header">
+                      <span className="contact-modal-card-label">Family Guardian</span>
+                    </div>
+                    <span className="contact-modal-card-muted">No family guardian linked to this patient.</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Shared Consultations Section */}
             <div className="consultations-section">
               <h4 className="consultations-title">Shared Doctor Consultations</h4>
@@ -698,6 +750,97 @@ export default function GuardianDashboard() {
           color: var(--text-primary);
           font-size: var(--font-base);
           font-weight: 700;
+        }
+
+        .contact-info-section {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .contact-info-title {
+          font-size: var(--font-base);
+          font-weight: 700;
+          color: var(--text-secondary);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+          padding-bottom: 8px;
+          margin: 0;
+        }
+
+        .contact-grid-modal {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 12px;
+        }
+
+        @media (min-width: 600px) {
+          .contact-grid-modal {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          }
+        }
+
+        .contact-modal-card {
+          padding: 14px;
+          border-radius: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .contact-modal-card.patient-card {
+          background: rgba(45, 212, 191, 0.03);
+          border: 1px solid rgba(45, 212, 191, 0.1);
+        }
+
+        .contact-modal-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .contact-modal-card-label {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: var(--text-muted);
+          background: rgba(255, 255, 255, 0.05);
+          padding: 2px 8px;
+          border-radius: var(--radius-sm);
+        }
+
+        .contact-modal-card-relation {
+          font-size: 9px;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: var(--color-guardian-light);
+          background: rgba(245, 158, 11, 0.1);
+          padding: 2px 8px;
+          border-radius: var(--radius-sm);
+        }
+
+        .contact-modal-card-name {
+          font-size: var(--font-base);
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .contact-modal-card-value {
+          font-size: var(--font-base);
+          font-weight: 700;
+          color: #2dd4bf;
+        }
+
+        .contact-modal-card-phone {
+          font-size: var(--font-xs);
+          color: var(--text-secondary);
+        }
+
+        .contact-modal-card-muted {
+          font-size: var(--font-xs);
+          color: var(--text-muted);
+          font-style: italic;
         }
 
         .consultations-section {

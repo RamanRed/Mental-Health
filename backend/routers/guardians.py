@@ -30,6 +30,37 @@ from math import radians, cos, sin, asin, sqrt
 router = APIRouter(prefix="/api/guardians", tags=["Guardians"])
 
 
+async def _attach_guardian_details(resp: PatientProfileResponse, db: AsyncSession) -> PatientProfileResponse:
+    if resp.guardian1_id:
+        g1_res = await db.execute(select(GuardianProfile).where(GuardianProfile.user_id == resp.guardian1_id))
+        g1 = g1_res.scalar_one_or_none()
+        if g1:
+            resp.guardian1_name = g1.full_name
+            resp.guardian1_type = g1.guardian_type
+            resp.guardian1_phone = g1.contact_number
+        else:
+            u1_res = await db.execute(select(User).where(User.id == resp.guardian1_id))
+            u1 = u1_res.scalar_one_or_none()
+            if u1:
+                resp.guardian1_name = f"User ({u1.phone})"
+                resp.guardian1_phone = u1.phone
+
+    if resp.guardian2_id:
+        g2_res = await db.execute(select(GuardianProfile).where(GuardianProfile.user_id == resp.guardian2_id))
+        g2 = g2_res.scalar_one_or_none()
+        if g2:
+            resp.guardian2_name = g2.full_name
+            resp.guardian2_type = g2.guardian_type
+            resp.guardian2_phone = g2.contact_number
+        else:
+            u2_res = await db.execute(select(User).where(User.id == resp.guardian2_id))
+            u2 = u2_res.scalar_one_or_none()
+            if u2:
+                resp.guardian2_name = f"User ({u2.phone})"
+                resp.guardian2_phone = u2.phone
+    return resp
+
+
 @router.get("/patients", response_model=list[PatientProfileResponse])
 async def list_linked_patients(
     current_user: dict = Depends(require_guardian),
@@ -64,6 +95,7 @@ async def list_linked_patients(
         
         resp = PatientProfileResponse.model_validate(p)
         resp.risk_level = rl
+        resp = await _attach_guardian_details(resp, db)
         response_list.append(resp)
         
     return response_list
@@ -138,7 +170,8 @@ async def register_patient_on_behalf(
     await db.commit()
     await db.refresh(profile)
 
-    return PatientProfileResponse.model_validate(profile)
+    resp = PatientProfileResponse.model_validate(profile)
+    return await _attach_guardian_details(resp, db)
 
 
 @router.post("/notes")
@@ -356,6 +389,7 @@ async def get_nearby_patients(
             resp = PatientProfileResponse.model_validate(p)
             resp.risk_level = rl
             resp.distance_km = round(dist, 2)
+            resp = await _attach_guardian_details(resp, db)
             nearby_patients.append(resp)
             
     return nearby_patients
